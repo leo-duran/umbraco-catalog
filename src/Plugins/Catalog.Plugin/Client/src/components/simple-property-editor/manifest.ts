@@ -8,7 +8,7 @@ export const manifests: Array<UmbExtensionManifest> = [
       label: "Suggestions",
       icon: "icon-list",
       group: "common",
-      propertyEditorSchemaAlias: "Umbraco.Plain.String",
+      propertyEditorSchemaAlias: "Catalog.Suggestions",
     }
   },
 ];
