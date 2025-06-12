@@ -1,0 +1,14 @@
+{
+  "id": "Demo.Extensions",
+  "name": "Demo.Extensions",
+  "version": "0.0.0",
+  "allowTelemetry": true,
+  "extensions": [
+    {
+      "name": "Demo Extensions Bundle",
+      "alias": "Demo.Extensions.Bundle",
+      "type": "bundle",
+      "js": "/App_Plugins/DemoExtensions/demo-extensions.js"
+    }
+  ]
+}
