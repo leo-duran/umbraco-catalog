@@ -11,7 +11,7 @@ function getBearerToken() {
 
 // load up the manifests here
 export const onInit: UmbEntryPointOnInit = async (_host, _extensionRegistry) => {
-  console.log("Hello from my extension... on init 🎉", getBearerToken());
+  console.log("Hello from my extension... on init 🎉");
   
   try {
     const response = await CatalogPluginService.ping({
