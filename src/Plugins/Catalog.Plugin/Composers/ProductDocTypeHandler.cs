@@ -28,21 +28,20 @@ public class ProductDocTypeHandler : INotificationAsyncHandler<UmbracoApplicatio
         {
 
             var contentTypeBuilder = new DocumentTypeBuilder(_shortStringHelper)
-                .WithAlias(contentTypeAlias)
-                .WithName("Product")
-                .WithDescription("A product document type")
-                .WithIcon("icon-shopping-basket")
+                .SetAlias(contentTypeAlias)
+                .SetName("Product")
+                .SetDescription("A product document type")
+                .SetIcon("icon-shopping-basket")
                 .AddTab("Content", tab => tab
-                    .WithAlias("content")
-                    .WithSortOrder(1)
-                    .AddTextBoxProperty("Title", "title", property => property
-                        .WithDescription("Page title")
-                        .IsMandatory()
-                        .WithValueStorageType(ValueStorageType.Nvarchar))
-                    .AddTextAreaProperty("Description", "description")
-                    .AddNumericProperty("Price", "price", property => property
-                        .IsMandatory())
-                    .AddMediaPickerProperty("Product Image", "productImage"));
+                    .SetSortOrder(1)
+                    .AddTextBoxProperty("title", "Title", property => property
+                        .SetDescription("Page title")
+                        .SetMandatory(true)
+                        .SetValueStorageType(ValueStorageType.Nvarchar))
+                    .AddTextAreaProperty("description", "Description")
+                    .AddIntegerProperty("price", "Price", property => property
+                        .SetMandatory(true))
+                    .AddMediaPickerProperty("productImage", "Product Image"));
 
             var contentType = contentTypeBuilder.Build();
             _contentTypeService.Save(contentType);
