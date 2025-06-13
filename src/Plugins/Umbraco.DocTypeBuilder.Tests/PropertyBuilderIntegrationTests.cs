@@ -1,8 +1,10 @@
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Strings;
+using Umbraco.Cms.Core.Configuration.Models;
+using Umbraco.Cms.Infrastructure.Strings;
 using Umbraco.DocTypeBuilder;
 using FluentAssertions;
-using Moq;
+using Microsoft.Extensions.Options;
 
 namespace Umbraco.DocTypeBuilder.Tests;
 
@@ -11,8 +13,8 @@ namespace Umbraco.DocTypeBuilder.Tests;
 /// 
 /// These tests focus on demonstrating the PropertyBuilder functionality
 /// by creating PropertyType objects and testing their configuration.
-/// While they don't use a full Umbraco database, they test with real
-/// Umbraco types and services to ensure compatibility.
+/// These tests use real Umbraco services like DefaultShortStringHelper
+/// to ensure compatibility with actual Umbraco implementations.
 /// </summary>
 public class PropertyBuilderIntegrationTests
 {
@@ -20,7 +22,7 @@ public class PropertyBuilderIntegrationTests
     public void PropertyBuilder_Should_CreatePropertyTypeWithCorrectConfiguration()
     {
         // Arrange
-        var shortStringHelper = CreateMockShortStringHelper();
+        var shortStringHelper = CreateRealShortStringHelper();
         const string propertyName = "Integration Test Property";
         const string propertyAlias = "integrationTestProperty";
         const string editorAlias = "Umbraco.TextBox";
@@ -54,7 +56,7 @@ public class PropertyBuilderIntegrationTests
     public void PropertyBuilder_Should_CreateMultiplePropertiesWithDifferentConfigurations()
     {
         // Arrange
-        var shortStringHelper = CreateMockShortStringHelper();
+        var shortStringHelper = CreateRealShortStringHelper();
 
         // Act - Create three different properties using PropertyBuilder
         var titleProperty = new PropertyBuilder("Title", "title", "Umbraco.TextBox", shortStringHelper)
@@ -113,7 +115,7 @@ public class PropertyBuilderIntegrationTests
     public void PropertyBuilder_Should_CreatePropertyTypeCompatibleWithContentType()
     {
         // Arrange
-        var shortStringHelper = CreateMockShortStringHelper();
+        var shortStringHelper = CreateRealShortStringHelper();
 
         // Act - Create a property and add it to a ContentType
         var property = new PropertyBuilder("Content Property", "contentProperty", "Umbraco.TextBox", shortStringHelper)
@@ -161,7 +163,7 @@ public class PropertyBuilderIntegrationTests
     public void PropertyBuilder_Should_HandleDifferentPropertyEditorTypes()
     {
         // Arrange
-        var shortStringHelper = CreateMockShortStringHelper();
+        var shortStringHelper = CreateRealShortStringHelper();
 
         // Act - Create properties with different common Umbraco editor types
         var properties = new Dictionary<string, PropertyType>
@@ -215,7 +217,7 @@ public class PropertyBuilderIntegrationTests
     public void PropertyBuilder_Should_WorkWithFluentApiChaining()
     {
         // Arrange
-        var shortStringHelper = CreateMockShortStringHelper();
+        var shortStringHelper = CreateRealShortStringHelper();
 
         // Act - Demonstrate fluent API chaining
         var property = new PropertyBuilder("Chained Property", "chainedProperty", "Umbraco.TextBox", shortStringHelper)
@@ -237,28 +239,39 @@ public class PropertyBuilderIntegrationTests
         property.PropertyEditorAlias.Should().Be("Umbraco.TextBox", "because editor alias should be preserved");
     }
 
-    /// <summary>
-    /// Creates a mock IShortStringHelper for testing purposes.
-    /// This simulates the Umbraco string cleaning behavior.
-    /// </summary>
-    private IShortStringHelper CreateMockShortStringHelper()
+    [Fact]
+    public void PropertyBuilder_Should_WorkWithRealUmbracoStringCleaning()
     {
-        var mockShortStringHelper = new Mock<IShortStringHelper>();
-        
-        // Set up the CleanString method to behave like Umbraco's implementation
-        mockShortStringHelper.Setup(x => x.CleanString(It.IsAny<string>(), It.IsAny<CleanStringType>()))
-                           .Returns<string, CleanStringType>((input, type) => 
-                           {
-                               if (string.IsNullOrEmpty(input)) return string.Empty;
-                               
-                               // Simple alias cleaning - lowercase, remove spaces and special chars
-                               return input.ToLowerInvariant()
-                                         .Replace(" ", "")
-                                         .Replace("-", "")
-                                         .Replace("_", "");
-                           });
+        // Arrange
+        var shortStringHelper = CreateRealShortStringHelper();
 
-        return mockShortStringHelper.Object;
+        // Act - Test that PropertyBuilder works with real Umbraco string cleaning
+        var property = new PropertyBuilder("My Test Property!", "my-test-property", "Umbraco.TextBox", shortStringHelper)
+            .WithDescription("Property using real Umbraco string cleaning")
+            .Build();
+
+        // Assert - Verify PropertyBuilder works with real DefaultShortStringHelper
+        property.Should().NotBeNull("because PropertyBuilder should work with real IShortStringHelper");
+        property.Name.Should().Be("My Test Property!", "because the property name should be preserved as-is");
+        property.PropertyEditorAlias.Should().Be("Umbraco.TextBox", "because the editor alias should be set");
+        property.Description.Should().Be("Property using real Umbraco string cleaning", "because the description should be set");
+
+        // Verify we're using a real Umbraco PropertyType
+        property.Should().BeOfType<PropertyType>("because PropertyBuilder creates real Umbraco PropertyType objects");
+    }
+
+    /// <summary>
+    /// Creates a real Umbraco DefaultShortStringHelper for testing purposes.
+    /// This uses the actual Umbraco implementation with default configuration.
+    /// </summary>
+    private IShortStringHelper CreateRealShortStringHelper()
+    {
+        // Create default request handling settings for Umbraco
+        var requestHandlerSettings = new RequestHandlerSettings();
+        var options = Options.Create(requestHandlerSettings);
+        
+        // Create the real Umbraco DefaultShortStringHelper
+        return new DefaultShortStringHelper(options);
     }
 }
 
