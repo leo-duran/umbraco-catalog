@@ -3,7 +3,7 @@ using Umbraco.Cms.Core.Strings;
 using Umbraco.DocTypeBuilder;
 using FluentAssertions;
 using Moq;
-using NUnit.Framework;
+using Xunit;
 
 namespace Umbraco.DocTypeBuilder.Tests;
 
@@ -14,13 +14,11 @@ namespace Umbraco.DocTypeBuilder.Tests;
 /// 
 /// NOTE: PropertyType.Alias is read-only in Umbraco 15.x - this is a known API compatibility issue.
 /// </summary>
-[TestFixture]
 public class PropertyBuilderTests
 {
-    private Mock<IShortStringHelper> _mockShortStringHelper;
+    private readonly Mock<IShortStringHelper> _mockShortStringHelper;
 
-    [SetUp]
-    public void SetUp()
+    public PropertyBuilderTests()
     {
         // Arrange - Set up mock for IShortStringHelper
         // This is required by Umbraco's PropertyType constructor
@@ -29,7 +27,7 @@ public class PropertyBuilderTests
                               .Returns<string, CleanStringType>((input, type) => input?.ToLowerInvariant().Replace(" ", "") ?? "");
     }
 
-    [Test]
+    [Fact]
     public void PropertyBuilder_Should_CreateBasicProperty_WithNameAndEditorAlias()
     {
         // Arrange
