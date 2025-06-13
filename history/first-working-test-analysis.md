@@ -4,6 +4,15 @@
 
 We successfully created our first working test following TDD principles and discovered a critical API compatibility issue in the process.
 
+## Test Project Structure
+
+### Proper Naming Conventions ✅
+- **Test File**: `PropertyBuilderTests.cs` (renamed from generic `UnitTest1.cs`)
+- **Test Class**: `PropertyBuilderTests` 
+- **Test Method**: `PropertyBuilder_Should_CreateBasicProperty_WithNameAndEditorAlias`
+
+Following proper naming conventions makes the codebase more maintainable and self-documenting.
+
 ## TDD Cycle: Red → Green → Refactor
 
 ### 🔴 RED Phase - Test Failure
