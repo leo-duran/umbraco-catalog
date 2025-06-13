@@ -1,171 +1,238 @@
+using System;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Strings;
 
 namespace Umbraco.DocTypeBuilder;
 
 /// <summary>
-/// Builder for creating property groups (tabs) in Umbraco document types.
+/// Builder for creating Umbraco property groups (tabs) using a fluent API.
 /// </summary>
 public class TabBuilder
 {
-    private readonly PropertyGroup _tab;
     private readonly IShortStringHelper _shortStringHelper;
+    private string _name = string.Empty;
+    private int _sortOrder = 0;
+    private PropertyGroup _propertyGroup;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TabBuilder"/> class.
     /// </summary>
-    /// <param name="name">The name of the tab.</param>
     /// <param name="shortStringHelper">The short string helper used for creating aliases.</param>
-    public TabBuilder(string name, IShortStringHelper shortStringHelper)
+    public TabBuilder(IShortStringHelper shortStringHelper)
     {
         _shortStringHelper = shortStringHelper;
-        _tab = new PropertyGroup(new PropertyTypeCollection(true))
-        {
-            Name = name,
-            Type = PropertyGroupType.Tab
-        };
+        _propertyGroup = new PropertyGroup(false);
     }
 
     /// <summary>
-    /// Sets the alias of the tab.
+    /// Sets the name for the tab.
     /// </summary>
-    /// <param name="alias">The alias to set.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder WithAlias(string alias)
+    /// <param name="name">The name to set.</param>
+    /// <returns>The current TabBuilder instance for method chaining.</returns>
+    public TabBuilder SetName(string name)
     {
-        _tab.Alias = alias;
+        _name = name;
+        _propertyGroup.Name = name;
         return this;
     }
 
     /// <summary>
-    /// Sets the sort order of the tab.
+    /// Sets the sort order for the tab.
     /// </summary>
     /// <param name="sortOrder">The sort order to set.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder WithSortOrder(int sortOrder)
+    /// <returns>The current TabBuilder instance for method chaining.</returns>
+    public TabBuilder SetSortOrder(int sortOrder)
     {
-        _tab.SortOrder = sortOrder;
+        _sortOrder = sortOrder;
+        _propertyGroup.SortOrder = sortOrder;
         return this;
     }
 
     /// <summary>
-    /// Adds a property to the tab.
+    /// Adds a TextBox property to the tab.
     /// </summary>
-    /// <param name="name">The name of the property.</param>
     /// <param name="alias">The alias of the property.</param>
-    /// <param name="editorAlias">The alias of the property editor.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddProperty(string name, string alias, string editorAlias, Action<PropertyBuilder> configureProperty)
+    /// <param name="name">The name of the property.</param>
+    /// <param name="configureProperty">Optional action to configure the property.</param>
+    /// <returns>The current TabBuilder instance for method chaining.</returns>
+    public TabBuilder AddTextBoxProperty(string alias, string name, Action<PropertyBuilder>? configureProperty = null)
     {
-        var propertyBuilder = new PropertyBuilder(name, alias, editorAlias, _shortStringHelper);
-        configureProperty(propertyBuilder);
-        _tab.PropertyTypes?.Add(propertyBuilder.Build());
+        var propertyBuilder = new PropertyBuilder(_shortStringHelper)
+            .SetAlias(alias)
+            .SetName(name)
+            .SetPropertyEditorAlias("Umbraco.TextBox");
+            
+        configureProperty?.Invoke(propertyBuilder);
+        
+        var property = propertyBuilder.Build();
+        _propertyGroup.PropertyTypes.Add(property);
+        
         return this;
     }
 
     /// <summary>
-    /// Adds a text box property to the tab.
+    /// Adds a TextArea property to the tab.
     /// </summary>
-    /// <param name="name">The name of the property.</param>
     /// <param name="alias">The alias of the property.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddTextBoxProperty(string name, string alias, Action<PropertyBuilder>? configureProperty = null)
+    /// <param name="name">The name of the property.</param>
+    /// <param name="configureProperty">Optional action to configure the property.</param>
+    /// <returns>The current TabBuilder instance for method chaining.</returns>
+    public TabBuilder AddTextAreaProperty(string alias, string name, Action<PropertyBuilder>? configureProperty = null)
     {
-        return AddProperty(name, alias, "Umbraco.TextBox", configureProperty ?? (p => { }));
+        var propertyBuilder = new PropertyBuilder(_shortStringHelper)
+            .SetAlias(alias)
+            .SetName(name)
+            .SetPropertyEditorAlias("Umbraco.TextArea");
+            
+        configureProperty?.Invoke(propertyBuilder);
+        
+        var property = propertyBuilder.Build();
+        _propertyGroup.PropertyTypes.Add(property);
+        
+        return this;
     }
 
     /// <summary>
-    /// Adds a text area property to the tab.
+    /// Adds a RichText property to the tab.
     /// </summary>
-    /// <param name="name">The name of the property.</param>
     /// <param name="alias">The alias of the property.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddTextAreaProperty(string name, string alias, Action<PropertyBuilder>? configureProperty = null)
+    /// <param name="name">The name of the property.</param>
+    /// <param name="configureProperty">Optional action to configure the property.</param>
+    /// <returns>The current TabBuilder instance for method chaining.</returns>
+    public TabBuilder AddRichTextProperty(string alias, string name, Action<PropertyBuilder>? configureProperty = null)
     {
-        return AddProperty(name, alias, "Umbraco.TextArea", configureProperty ?? (p => { }));
+        var propertyBuilder = new PropertyBuilder(_shortStringHelper)
+            .SetAlias(alias)
+            .SetName(name)
+            .SetPropertyEditorAlias("Umbraco.RichText");
+            
+        configureProperty?.Invoke(propertyBuilder);
+        
+        var property = propertyBuilder.Build();
+        _propertyGroup.PropertyTypes.Add(property);
+        
+        return this;
     }
 
     /// <summary>
-    /// Adds a rich text editor property to the tab.
+    /// Adds a MediaPicker3 property to the tab.
     /// </summary>
-    /// <param name="name">The name of the property.</param>
     /// <param name="alias">The alias of the property.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddRichTextProperty(string name, string alias, Action<PropertyBuilder>? configureProperty = null)
+    /// <param name="name">The name of the property.</param>
+    /// <param name="configureProperty">Optional action to configure the property.</param>
+    /// <returns>The current TabBuilder instance for method chaining.</returns>
+    public TabBuilder AddMediaPickerProperty(string alias, string name, Action<PropertyBuilder>? configureProperty = null)
     {
-        return AddProperty(name, alias, "Umbraco.TinyMCE", configureProperty ?? (p => { }));
+        var propertyBuilder = new PropertyBuilder(_shortStringHelper)
+            .SetAlias(alias)
+            .SetName(name)
+            .SetPropertyEditorAlias("Umbraco.MediaPicker3");
+            
+        configureProperty?.Invoke(propertyBuilder);
+        
+        var property = propertyBuilder.Build();
+        _propertyGroup.PropertyTypes.Add(property);
+        
+        return this;
     }
 
     /// <summary>
-    /// Adds a media picker property to the tab.
+    /// Adds a ContentPicker property to the tab.
     /// </summary>
-    /// <param name="name">The name of the property.</param>
     /// <param name="alias">The alias of the property.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddMediaPickerProperty(string name, string alias, Action<PropertyBuilder>? configureProperty = null)
+    /// <param name="name">The name of the property.</param>
+    /// <param name="configureProperty">Optional action to configure the property.</param>
+    /// <returns>The current TabBuilder instance for method chaining.</returns>
+    public TabBuilder AddContentPickerProperty(string alias, string name, Action<PropertyBuilder>? configureProperty = null)
     {
-        return AddProperty(name, alias, "Umbraco.MediaPicker3", configureProperty ?? (p => { }));
+        var propertyBuilder = new PropertyBuilder(_shortStringHelper)
+            .SetAlias(alias)
+            .SetName(name)
+            .SetPropertyEditorAlias("Umbraco.ContentPicker");
+            
+        configureProperty?.Invoke(propertyBuilder);
+        
+        var property = propertyBuilder.Build();
+        _propertyGroup.PropertyTypes.Add(property);
+        
+        return this;
     }
 
     /// <summary>
-    /// Adds a content picker property to the tab.
+    /// Adds an Integer property to the tab.
     /// </summary>
-    /// <param name="name">The name of the property.</param>
     /// <param name="alias">The alias of the property.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddContentPickerProperty(string name, string alias, Action<PropertyBuilder>? configureProperty = null)
+    /// <param name="name">The name of the property.</param>
+    /// <param name="configureProperty">Optional action to configure the property.</param>
+    /// <returns>The current TabBuilder instance for method chaining.</returns>
+    public TabBuilder AddIntegerProperty(string alias, string name, Action<PropertyBuilder>? configureProperty = null)
     {
-        return AddProperty(name, alias, "Umbraco.ContentPicker", configureProperty ?? (p => { }));
+        var propertyBuilder = new PropertyBuilder(_shortStringHelper)
+            .SetAlias(alias)
+            .SetName(name)
+            .SetPropertyEditorAlias("Umbraco.Integer")
+            .SetValueStorageType(ValueStorageType.Integer);
+            
+        configureProperty?.Invoke(propertyBuilder);
+        
+        var property = propertyBuilder.Build();
+        _propertyGroup.PropertyTypes.Add(property);
+        
+        return this;
     }
 
     /// <summary>
-    /// Adds a numeric property to the tab.
+    /// Adds a TrueFalse (checkbox) property to the tab.
     /// </summary>
-    /// <param name="name">The name of the property.</param>
     /// <param name="alias">The alias of the property.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddNumericProperty(string name, string alias, Action<PropertyBuilder>? configureProperty = null)
+    /// <param name="name">The name of the property.</param>
+    /// <param name="configureProperty">Optional action to configure the property.</param>
+    /// <returns>The current TabBuilder instance for method chaining.</returns>
+    public TabBuilder AddCheckboxProperty(string alias, string name, Action<PropertyBuilder>? configureProperty = null)
     {
-        return AddProperty(name, alias, "Umbraco.Integer", configureProperty ?? (p => { }));
+        var propertyBuilder = new PropertyBuilder(_shortStringHelper)
+            .SetAlias(alias)
+            .SetName(name)
+            .SetPropertyEditorAlias("Umbraco.TrueFalse")
+            .SetValueStorageType(ValueStorageType.Integer);
+            
+        configureProperty?.Invoke(propertyBuilder);
+        
+        var property = propertyBuilder.Build();
+        _propertyGroup.PropertyTypes.Add(property);
+        
+        return this;
     }
 
     /// <summary>
-    /// Adds a checkbox property to the tab.
+    /// Adds a DateTime property to the tab.
     /// </summary>
-    /// <param name="name">The name of the property.</param>
     /// <param name="alias">The alias of the property.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddCheckboxProperty(string name, string alias, Action<PropertyBuilder>? configureProperty = null)
+    /// <param name="name">The name of the property.</param>
+    /// <param name="configureProperty">Optional action to configure the property.</param>
+    /// <returns>The current TabBuilder instance for method chaining.</returns>
+    public TabBuilder AddDatePickerProperty(string alias, string name, Action<PropertyBuilder>? configureProperty = null)
     {
-        return AddProperty(name, alias, "Umbraco.TrueFalse", configureProperty ?? (p => { }));
+        var propertyBuilder = new PropertyBuilder(_shortStringHelper)
+            .SetAlias(alias)
+            .SetName(name)
+            .SetPropertyEditorAlias("Umbraco.DateTime")
+            .SetValueStorageType(ValueStorageType.Date);
+            
+        configureProperty?.Invoke(propertyBuilder);
+        
+        var property = propertyBuilder.Build();
+        _propertyGroup.PropertyTypes.Add(property);
+        
+        return this;
     }
 
     /// <summary>
-    /// Adds a date picker property to the tab.
+    /// Builds and returns the configured PropertyGroup.
     /// </summary>
-    /// <param name="name">The name of the property.</param>
-    /// <param name="alias">The alias of the property.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddDatePickerProperty(string name, string alias, Action<PropertyBuilder>? configureProperty = null)
-    {
-        return AddProperty(name, alias, "Umbraco.DateTime", configureProperty ?? (p => { }));
-    }
-
-    /// <summary>
-    /// Builds and returns the PropertyGroup instance.
-    /// </summary>
-    /// <returns>The built PropertyGroup.</returns>
+    /// <returns>The configured PropertyGroup instance.</returns>
     public PropertyGroup Build()
     {
-        return _tab;
+        return _propertyGroup;
     }
 }

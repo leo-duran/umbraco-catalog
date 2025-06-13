@@ -1,38 +1,76 @@
+using System;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Strings;
 
 namespace Umbraco.DocTypeBuilder;
 
 /// <summary>
-/// Builder for creating property types in Umbraco document types.
+/// Builder for creating Umbraco property types using a fluent API.
 /// </summary>
 public class PropertyBuilder
 {
-    private readonly PropertyType _property;
+    private readonly IShortStringHelper _shortStringHelper;
+    private string _alias = "defaultProperty";
+    private string _name = string.Empty;
+    private string _description = string.Empty;
+    private string _propertyEditorAlias = "Umbraco.TextBox";
+    private bool _mandatory = false;
+    private bool _labelOnTop = false;
+    private string _validationRegExp = string.Empty;
+    private string _validationRegExpMessage = string.Empty;
+    private ValueStorageType _valueStorageType = ValueStorageType.Nvarchar;
+    private int _sortOrder = 0;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PropertyBuilder"/> class.
     /// </summary>
-    /// <param name="name">The name of the property.</param>
-    /// <param name="alias">The alias of the property.</param>
-    /// <param name="editorAlias">The alias of the property editor.</param>
     /// <param name="shortStringHelper">The short string helper used for creating aliases.</param>
-    public PropertyBuilder(string name, string alias, string editorAlias, IShortStringHelper shortStringHelper)
+    public PropertyBuilder(IShortStringHelper shortStringHelper)
     {
-        _property = new PropertyType(shortStringHelper, editorAlias, ValueStorageType.Nvarchar, alias)
-        {
-            Name = name
-        };
+        _shortStringHelper = shortStringHelper;
     }
 
     /// <summary>
-    /// Sets the description of the property.
+    /// Sets the alias for the property.
+    /// </summary>
+    /// <param name="alias">The alias to set.</param>
+    /// <returns>The current PropertyBuilder instance for method chaining.</returns>
+    public PropertyBuilder SetAlias(string alias)
+    {
+        _alias = alias;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the name for the property.
+    /// </summary>
+    /// <param name="name">The name to set.</param>
+    /// <returns>The current PropertyBuilder instance for method chaining.</returns>
+    public PropertyBuilder SetName(string name)
+    {
+        _name = name;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the description for the property.
     /// </summary>
     /// <param name="description">The description to set.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public PropertyBuilder WithDescription(string description)
+    /// <returns>The current PropertyBuilder instance for method chaining.</returns>
+    public PropertyBuilder SetDescription(string description)
     {
-        _property.Description = description;
+        _description = description;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the property editor alias.
+    /// </summary>
+    /// <param name="propertyEditorAlias">The property editor alias to set.</param>
+    /// <returns>The current PropertyBuilder instance for method chaining.</returns>
+    public PropertyBuilder SetPropertyEditorAlias(string propertyEditorAlias)
+    {
+        _propertyEditorAlias = propertyEditorAlias;
         return this;
     }
 
@@ -40,74 +78,80 @@ public class PropertyBuilder
     /// Sets whether the property is mandatory.
     /// </summary>
     /// <param name="mandatory">Whether the property is mandatory.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public PropertyBuilder IsMandatory(bool mandatory = true)
+    /// <returns>The current PropertyBuilder instance for method chaining.</returns>
+    public PropertyBuilder SetMandatory(bool mandatory = true)
     {
-        _property.Mandatory = mandatory;
+        _mandatory = mandatory;
         return this;
     }
 
     /// <summary>
-    /// Sets the value storage type of the property.
-    /// </summary>
-    /// <param name="valueStorageType">The value storage type to set.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public PropertyBuilder WithValueStorageType(ValueStorageType valueStorageType)
-    {
-        _property.ValueStorageType = valueStorageType;
-        return this;
-    }
-
-    /// <summary>
-    /// Sets the sort order of the property.
-    /// </summary>
-    /// <param name="sortOrder">The sort order to set.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public PropertyBuilder WithSortOrder(int sortOrder)
-    {
-        _property.SortOrder = sortOrder;
-        return this;
-    }
-
-    /// <summary>
-    /// Sets the validation regular expression for the property.
-    /// </summary>
-    /// <param name="regex">The regular expression to set.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public PropertyBuilder WithValidationRegex(string regex)
-    {
-        _property.ValidationRegExp = regex;
-        return this;
-    }
-
-    /// <summary>
-    /// Sets the data type definition ID for the property.
-    /// </summary>
-    /// <param name="dataTypeDefinitionId">The data type definition ID to set.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public PropertyBuilder WithDataTypeDefinitionId(int dataTypeDefinitionId)
-    {
-        _property.DataTypeId = dataTypeDefinitionId;
-        return this;
-    }
-
-    /// <summary>
-    /// Sets the label on top for the property.
+    /// Sets whether the label should be on top.
     /// </summary>
     /// <param name="labelOnTop">Whether the label should be on top.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public PropertyBuilder WithLabelOnTop(bool labelOnTop = true)
+    /// <returns>The current PropertyBuilder instance for method chaining.</returns>
+    public PropertyBuilder SetLabelOnTop(bool labelOnTop = true)
     {
-        _property.LabelOnTop = labelOnTop;
+        _labelOnTop = labelOnTop;
         return this;
     }
 
     /// <summary>
-    /// Builds and returns the PropertyType instance.
+    /// Sets the validation regular expression.
     /// </summary>
-    /// <returns>The built PropertyType.</returns>
+    /// <param name="validationRegExp">The validation regular expression.</param>
+    /// <param name="validationMessage">The validation message.</param>
+    /// <returns>The current PropertyBuilder instance for method chaining.</returns>
+    public PropertyBuilder SetValidation(string validationRegExp, string validationMessage = "")
+    {
+        _validationRegExp = validationRegExp;
+        _validationRegExpMessage = validationMessage;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the value storage type.
+    /// </summary>
+    /// <param name="valueStorageType">The value storage type.</param>
+    /// <returns>The current PropertyBuilder instance for method chaining.</returns>
+    public PropertyBuilder SetValueStorageType(ValueStorageType valueStorageType)
+    {
+        _valueStorageType = valueStorageType;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the sort order.
+    /// </summary>
+    /// <param name="sortOrder">The sort order.</param>
+    /// <returns>The current PropertyBuilder instance for method chaining.</returns>
+    public PropertyBuilder SetSortOrder(int sortOrder)
+    {
+        _sortOrder = sortOrder;
+        return this;
+    }
+
+    /// <summary>
+    /// Builds and returns the configured PropertyType.
+    /// </summary>
+    /// <returns>The configured PropertyType instance.</returns>
     public PropertyType Build()
     {
-        return _property;
+        // Use the correct Umbraco 15.4.3 constructor pattern
+        var propertyType = new PropertyType(_shortStringHelper, _propertyEditorAlias, _valueStorageType);
+        
+        // Set the alias after creation (this should work in Umbraco 15)
+        propertyType.Alias = _alias;
+        
+        // Set all the configured properties
+        propertyType.Name = _name;
+        propertyType.Description = _description;
+        propertyType.Mandatory = _mandatory;
+        propertyType.LabelOnTop = _labelOnTop;
+        propertyType.ValidationRegExp = _validationRegExp;
+        propertyType.ValidationRegExpMessage = _validationRegExpMessage;
+        propertyType.SortOrder = _sortOrder;
+        
+        return propertyType;
     }
 }
