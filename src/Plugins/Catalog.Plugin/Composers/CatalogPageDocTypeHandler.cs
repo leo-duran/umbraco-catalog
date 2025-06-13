@@ -9,31 +9,37 @@ using Umbraco.DocTypeBuilder;
 
 namespace Catalog.Plugin.Composers;
 
-public class ProductDocTypeHandler : INotificationAsyncHandler<UmbracoApplicationStartingNotification>
+public class CatalogPageDocTypeHandler : INotificationAsyncHandler<UmbracoApplicationStartingNotification>
 {
-    const string contentTypeAlias = "product";
+    const string contentTypeAlias = "catalogPage";
     private readonly IShortStringHelper _shortStringHelper;
     private readonly IContentTypeService _contentTypeService;
     private readonly ICoreScopeProvider _scopeProvider;
-    private readonly ILogger<ProductDocTypeHandler> _logger;
+    private readonly IFileService _fileService;
+    private readonly ILogger<CatalogPageDocTypeHandler> _logger;
+    private readonly IDataTypeService _dataTypeService;
 
-    public ProductDocTypeHandler(
+    public CatalogPageDocTypeHandler(
         IShortStringHelper shortStringHelper,
         IContentTypeService contentTypeService,
         ICoreScopeProvider scopeProvider,
-        ILogger<ProductDocTypeHandler> logger)
+        IFileService fileService,
+        ILogger<CatalogPageDocTypeHandler> logger,
+        IDataTypeService dataTypeService)
     {
         _shortStringHelper = shortStringHelper;
         _contentTypeService = contentTypeService;
         _scopeProvider = scopeProvider;
+        _fileService = fileService;
         _logger = logger;
+        _dataTypeService = dataTypeService;
     }
 
     public async Task HandleAsync(UmbracoApplicationStartingNotification notification, CancellationToken cancellationToken)
     {
         try
         {
-            _logger.LogInformation("Starting ProductDocTypeHandler.HandleAsync");
+            _logger.LogInformation("Starting CatalogPageDocTypeHandler.HandleAsync");
 
             using (var scope = _scopeProvider.CreateCoreScope())
             {
@@ -49,31 +55,33 @@ public class ProductDocTypeHandler : INotificationAsyncHandler<UmbracoApplicatio
                         return;
                     }
 
+                    // Create the document type with template support
                     _logger.LogInformation("Creating document type: {ContentTypeAlias}", contentTypeAlias);
-                    var contentTypeBuilder = new DocumentTypeBuilder(_shortStringHelper)
-                        .WithAlias(contentTypeAlias)
-                        .WithName("Product")
-                        .WithDescription("A product document type")
-                        .WithIcon("icon-shopping-basket")
-                        .AddTab("Content", tab => tab
-                            .WithAlias("content")
-                            .WithSortOrder(1)
-                            .AddTextBoxProperty("Title", "title", property => property
-                                .WithDescription("Page title")
-                                .IsMandatory()
-                                .WithValueStorageType(ValueStorageType.Nvarchar))
-                            .AddTextAreaProperty("Description", "description")
-                            .AddNumericProperty("Price", "price", property => property
-                                .IsMandatory())
-                            .AddMediaPickerProperty("Product Image", "productImage"));
+                    const string templateAlias = "catalogPageTemplate";
+                    const string templateName = "Catalog Page Template";
 
+                    // Get the template content
+                    string templateContent = GetDefaultTemplateContent();
+
+                    _logger.LogInformation("Creating document type with template: {TemplateAlias}", templateAlias);
+                    var contentTypeBuilder = new DocumentTypeBuilder(_shortStringHelper, _fileService)
+                        .WithAlias(contentTypeAlias)
+                        .WithName("Catalog Page")
+                        .WithDescription("A page that displays a catalog of products")
+                        .WithIcon("icon-shopping-basket-alt")
+                        .AllowAtRoot(true)
+                        .WithTemplate(templateAlias, templateName, templateContent);
+
+                    // Build the content type
                     _logger.LogInformation("Building content type");
                     var contentType = contentTypeBuilder.Build();
 
                     // Enable ModelsBuilder for this content type
                     _logger.LogInformation("Enabling ModelsBuilder for content type");
                     contentType.IsElement = false;
+                    contentType.AllowedAsRoot = true;
 
+                    // Save the document type
                     _logger.LogInformation("Saving content type: {ContentTypeAlias}", contentTypeAlias);
                     _contentTypeService.Save(contentType);
                     _logger.LogInformation("Content type saved successfully: {ContentTypeAlias}", contentTypeAlias);
@@ -84,17 +92,44 @@ public class ProductDocTypeHandler : INotificationAsyncHandler<UmbracoApplicatio
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error in ProductDocTypeHandler scope");
+                    _logger.LogError(ex, "Error in CatalogPageDocTypeHandler scope: {Message}", ex.Message);
                     throw;
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in ProductDocTypeHandler.HandleAsync");
+            _logger.LogError(ex, "Error in CatalogPageDocTypeHandler.HandleAsync: {Message}", ex.Message);
             throw;
         }
 
         return;
+    }
+
+    private string GetDefaultTemplateContent()
+    {
+        return @"@using Umbraco.Cms.Web.Common.PublishedModels;
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ContentModels.CatalogPage>
+@using ContentModels = Umbraco.Cms.Web.Common.PublishedModels;
+
+@{
+    Layout = ""_Layout.cshtml"";
+    ViewData[""Title""] = Model.Name;
+}
+
+<div class=""catalog-page"">
+    <header class=""catalog-header"">
+        <h1>@Model.Name</h1>
+        @if (Model.HasValue(""description""))
+        {
+            <div class=""catalog-description"">@Model.Value(""description"")</div>
+        }
+    </header>
+
+    <section class=""product-catalog"">
+        <h2>Products</h2>
+        <!-- Product listing would go here -->
+    </section>
+</div>";
     }
 }

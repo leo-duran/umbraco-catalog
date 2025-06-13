@@ -1,4 +1,5 @@
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
 
 namespace Umbraco.DocTypeBuilder;
@@ -10,6 +11,9 @@ public class DocumentTypeBuilder
 {
     private readonly ContentType _contentType;
     private readonly IShortStringHelper _shortStringHelper;
+    private Template? _template;
+    private string? _templateContent;
+    private readonly IFileService? _fileService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentTypeBuilder"/> class.
@@ -19,6 +23,20 @@ public class DocumentTypeBuilder
     {
         _shortStringHelper = shortStringHelper;
         _contentType = new ContentType(shortStringHelper, -1);
+    }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DocumentTypeBuilder"/> class with template support.
+    /// </summary>
+    /// <param name="shortStringHelper">The short string helper used for creating aliases.</param>
+    /// <param name="fileService">The file service for template operations.</param>
+    public DocumentTypeBuilder(
+        IShortStringHelper shortStringHelper,
+        IFileService fileService)
+    {
+        _shortStringHelper = shortStringHelper;
+        _contentType = new ContentType(shortStringHelper, -1);
+        _fileService = fileService;
     }
 
     /// <summary>
@@ -113,11 +131,116 @@ public class DocumentTypeBuilder
     }
 
     /// <summary>
+    /// Creates and associates a template with the document type (synchronous version).
+    /// </summary>
+    /// <param name="templateAlias">The alias of the template.</param>
+    /// <param name="templateName">The name of the template.</param>
+    /// <param name="templateContent">The content of the template.</param>
+    /// <returns>The current builder instance for method chaining.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when template services are not available.</exception>
+    public DocumentTypeBuilder WithTemplate(string templateAlias, string templateName, string templateContent)
+    {
+        if (_fileService == null)
+        {
+            throw new InvalidOperationException("File service is not available. Use the constructor that accepts IFileService.");
+        }
+
+        try
+        {
+            // Try to get existing template first
+            _template = _fileService.GetTemplate(templateAlias) as Template;
+            if (_template == null)
+            {
+                // Create a new template
+                _template = new Template(_shortStringHelper, templateAlias, templateName)
+                {
+                    Content = templateContent
+                };
+
+                // Save the template
+                _fileService.SaveTemplate(_template);
+            }
+            else
+            {
+                // Update the existing template content if it's different
+                if (_template.Content != templateContent)
+                {
+                    _template.Content = templateContent;
+                    _fileService.SaveTemplate(_template);
+                }
+            }
+
+            // Store the template content for later use
+            _templateContent = templateContent;
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to create or update template: {ex.Message}", ex);
+        }
+
+        return this;
+    }
+
+    /// <summary>
+    /// Associates an existing template with the document type by alias.
+    /// </summary>
+    /// <param name="templateAlias">The alias of the existing template.</param>
+    /// <returns>The current builder instance for method chaining.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when file service is not available or template is not found.</exception>
+    public DocumentTypeBuilder WithExistingTemplate(string templateAlias)
+    {
+        if (_fileService == null)
+        {
+            throw new InvalidOperationException("File service is not available. Use the constructor that accepts IFileService.");
+        }
+
+        // Get the existing template
+        _template = _fileService.GetTemplate(templateAlias) as Template;
+        if (_template == null)
+        {
+            throw new InvalidOperationException($"Template with alias '{templateAlias}' not found.");
+        }
+
+        return this;
+    }
+
+    /// <summary>
     /// Builds and returns the ContentType instance.
     /// </summary>
     /// <returns>The built ContentType.</returns>
     public ContentType Build()
     {
+        // Set IsElement to false by default to ensure the document type appears in the content tree
+        if (!_contentType.IsElement)
+        {
+            _contentType.IsElement = false;
+        }
+
+        // Associate the template if one was created
+        if (_template != null)
+        {
+            _contentType.AllowedTemplates = [_template];
+            _contentType.SetDefaultTemplate(_template);
+        }
+
         return _contentType;
+    }
+
+    /// <summary>
+    /// Gets the template associated with this document type, if any.
+    /// </summary>
+    /// <returns>The template, or null if no template is associated.</returns>
+    public Template? GetTemplate()
+    {
+        return _template;
+    }
+
+    /// <summary>
+    /// Gets the template content associated with this document type, if any.
+    /// </summary>
+    /// <returns>The template content, or null if no template is associated.</returns>
+    public string? GetTemplateContent()
+    {
+        return _templateContent;
     }
 }
