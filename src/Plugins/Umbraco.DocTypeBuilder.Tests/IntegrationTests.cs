@@ -509,4 +509,174 @@ public class IntegrationTests
         custom2.Mandatory.Should().BeTrue();
         custom2.ValueStorageType.Should().Be(ValueStorageType.Ntext);
     }
+
+    [Fact]
+    public void Integration_Should_Create_Document_Types_With_Templates()
+    {
+        // Act - Create templates and document types together
+        var masterTemplate = new TemplateBuilder(_mockShortStringHelper.Object)
+            .WithName("Master Layout")
+            .WithAlias("masterLayout")
+            .AsMasterTemplate()
+            .WithSeoTags()
+            .Build();
+
+        var homeTemplate = new TemplateBuilder(_mockShortStringHelper.Object)
+            .WithName("Home Page Template")
+            .WithAlias("homePageTemplate")
+            .WithMasterTemplate(masterTemplate)
+            .WithUmbracoModel("ContentModel")
+            .WithBasicHtmlStructure("@Model.Value(\"pageTitle\")")
+            .WithPropertyRendering("mainContent", "featuredImage")
+            .WithNavigation()
+            .Build();
+
+        var homePageDocType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
+            .WithAlias("homePage")
+            .WithName("Home Page")
+            .WithDescription("The main home page")
+            .WithIcon("icon-home")
+            .AllowAtRoot(true)
+            .WithDefaultTemplate(homeTemplate)
+            .WithAllowedTemplates(homeTemplate, masterTemplate)
+            .AddTab("Content", tab => tab
+                .AddTextBoxProperty("Page Title", "pageTitle", prop => prop.IsMandatory())
+                .AddRichTextProperty("Main Content", "mainContent")
+                .AddMediaPickerProperty("Featured Image", "featuredImage"))
+            .Build();
+
+        // Assert - Validate template and document type integration
+        masterTemplate.Should().NotBeNull();
+        masterTemplate.Content.Should().Contain("@RenderBody()");
+
+        homeTemplate.Should().NotBeNull();
+        homeTemplate.MasterTemplateAlias.Should().Be("masterLayout");
+        homeTemplate.Content.Should().Contain("@Model.Value(\"pageTitle\")");
+
+        homePageDocType.Should().NotBeNull();
+        homePageDocType.DefaultTemplate.Should().NotBeNull();
+        homePageDocType.DefaultTemplate!.Alias.Should().Be("homePageTemplate");
+        homePageDocType.AllowedTemplates.Should().HaveCount(2);
+        homePageDocType.PropertyGroups.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public void Integration_Should_Create_Blog_Structure_With_Templates()
+    {
+        // Act - Create complete blog system with templates
+        var blogListTemplate = new TemplateBuilder(_mockShortStringHelper.Object)
+            .WithName("Blog List Template")
+            .WithAlias("blogListTemplate")
+            .WithUmbracoModel("ContentModel")
+            .WithBasicHtmlStructure("@Model.Value(\"blogTitle\")")
+            .WithChildrenSection("Latest Posts")
+            .WithAssets(cssFiles: new[] { "/css/blog.css" })
+            .Build();
+
+        var blogPostTemplate = new TemplateBuilder(_mockShortStringHelper.Object)
+            .WithName("Blog Post Template")
+            .WithAlias("blogPostTemplate")
+            .WithUmbracoModel("ContentModel")
+            .WithPropertyRendering("postTitle", "postContent", "publishDate", "author")
+            .WithSeoTags(includeOpenGraph: true, includeTwitterCard: true)
+            .Build();
+
+        var blogContainer = new DocumentTypeBuilder(_mockShortStringHelper.Object)
+            .WithAlias("blogContainer")
+            .WithName("Blog Container")
+            .WithIcon("icon-newspaper-alt")
+            .AllowAtRoot(true)
+            .WithDefaultTemplate(blogListTemplate)
+            .AddTab("Settings", tab => tab
+                .AddTextBoxProperty("Blog Title", "blogTitle", prop => prop.IsMandatory())
+                .AddTextAreaProperty("Blog Description", "blogDescription"))
+            .Build();
+
+        var blogPost = new DocumentTypeBuilder(_mockShortStringHelper.Object)
+            .WithAlias("blogPost")
+            .WithName("Blog Post")
+            .WithIcon("icon-edit")
+            .AllowAtRoot(false)
+            .WithDefaultTemplate(blogPostTemplate)
+            .AddTab("Content", tab => tab
+                .AddTextBoxProperty("Post Title", "postTitle", prop => prop.IsMandatory())
+                .AddRichTextProperty("Post Content", "postContent", prop => prop.IsMandatory())
+                .AddDatePickerProperty("Publish Date", "publishDate", prop => prop.IsMandatory())
+                .AddTextBoxProperty("Author", "author"))
+            .Build();
+
+        // Assert - Validate complete blog system
+        blogListTemplate.Content.Should().Contain("@Model.Value(\"blogTitle\")");
+        blogListTemplate.Content.Should().Contain("Latest Posts");
+
+        blogPostTemplate.Content.Should().Contain("@Model.Value(\"postTitle\")");
+        blogPostTemplate.Content.Should().Contain("og:title");
+
+        blogContainer.DefaultTemplate.Should().NotBeNull();
+        blogContainer.DefaultTemplate!.Alias.Should().Be("blogListTemplate");
+
+        blogPost.DefaultTemplate.Should().NotBeNull();
+        blogPost.DefaultTemplate!.Alias.Should().Be("blogPostTemplate");
+    }
+
+    [Fact]
+    public void Integration_Should_Create_E_Commerce_With_Product_Templates()
+    {
+        // Act - Create e-commerce templates and document types
+        var productListTemplate = new TemplateBuilder(_mockShortStringHelper.Object)
+            .WithName("Product List Template")
+            .WithAlias("productListTemplate")
+            .WithChildrenSection("Products")
+            .WithAssets(
+                cssFiles: new[] { "/css/product-grid.css" },
+                jsFiles: new[] { "/js/product-filters.js" })
+            .Build();
+
+        var productTemplate = new TemplateBuilder(_mockShortStringHelper.Object)
+            .WithName("Product Template")
+            .WithAlias("productTemplate")
+            .WithPropertyRendering("productName", "shortDescription", "fullDescription", "price", "productImages")
+            .WithAssets(jsFiles: new[] { "/js/product-gallery.js", "/js/add-to-cart.js" })
+            .WithSeoTags()
+            .Build();
+
+        var categoryDocType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
+            .WithAlias("productCategory")
+            .WithName("Product Category")
+            .WithIcon("icon-folder")
+            .AllowAtRoot(true)
+            .WithDefaultTemplate(productListTemplate)
+            .AddTab("Category Info", tab => tab
+                .AddTextBoxProperty("Category Name", "categoryName", prop => prop.IsMandatory())
+                .AddTextAreaProperty("Category Description", "categoryDescription")
+                .AddMediaPickerProperty("Category Image", "categoryImage"))
+            .Build();
+
+        var productDocType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
+            .WithAlias("product")
+            .WithName("Product")
+            .WithIcon("icon-shopping-basket")
+            .AllowAtRoot(false)
+            .WithDefaultTemplate(productTemplate)
+            .AddTab("Product Info", tab => tab
+                .AddTextBoxProperty("Product Name", "productName", prop => prop.IsMandatory())
+                .AddTextAreaProperty("Short Description", "shortDescription")
+                .AddRichTextProperty("Full Description", "fullDescription")
+                .AddMediaPickerProperty("Product Images", "productImages"))
+            .AddTab("Pricing", tab => tab
+                .AddNumericProperty("Price", "price", prop => prop
+                    .IsMandatory()
+                    .WithValueStorageType(ValueStorageType.Decimal)))
+            .Build();
+
+        // Assert - Validate e-commerce integration
+        productListTemplate.Content.Should().Contain("Products");
+        productListTemplate.Content.Should().Contain("/js/product-filters.js");
+
+        productTemplate.Content.Should().Contain("@Model.Value(\"productName\")");
+        productTemplate.Content.Should().Contain("/js/add-to-cart.js");
+
+        categoryDocType.DefaultTemplate!.Alias.Should().Be("productListTemplate");
+        productDocType.DefaultTemplate!.Alias.Should().Be("productTemplate");
+    }
 }
