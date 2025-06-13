@@ -19,6 +19,8 @@ public class PropertyBuilder
     /// <param name="shortStringHelper">The short string helper used for creating aliases.</param>
     public PropertyBuilder(string name, string alias, string editorAlias, IShortStringHelper shortStringHelper)
     {
+        // NOTE: PropertyType.Alias is read-only in Umbraco 15.x
+        // The alias parameter is passed to the constructor but the property itself cannot be set afterward
         _property = new PropertyType(shortStringHelper, editorAlias, ValueStorageType.Nvarchar, alias)
         {
             Name = name
