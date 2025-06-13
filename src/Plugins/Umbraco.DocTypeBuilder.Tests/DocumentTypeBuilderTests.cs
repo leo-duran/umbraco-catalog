@@ -27,86 +27,82 @@ public class DocumentTypeBuilderTests
     [Fact]
     public void DocumentTypeBuilder_Should_Create_Basic_ContentType()
     {
-        // Arrange & Act
+        // Arrange
         var builder = new DocumentTypeBuilder(_mockShortStringHelper.Object);
-        var contentType = builder.Build();
+
+        // Act
+        var contentType = builder
+            .SetAlias("testAlias")
+            .SetName("Test Content Type")
+            .Build();
 
         // Assert
         contentType.Should().NotBeNull();
-        contentType.Should().BeOfType<ContentType>();
-        contentType.Name.Should().Be(string.Empty); // Default empty
-        contentType.Alias.Should().Be(string.Empty); // Default empty
-        contentType.Description.Should().BeNullOrEmpty();
-        contentType.AllowedAsRoot.Should().BeFalse(); // Default false
-        contentType.IsElement.Should().BeFalse(); // Default false
+        contentType.Alias.Should().Be("testAlias");
+        contentType.Name.Should().Be("Test Content Type");
     }
 
     [Fact]
-    public void DocumentTypeBuilder_Should_Set_Alias_Correctly()
+    public void DocumentTypeBuilder_Should_Set_Name()
     {
         // Arrange
-        const string alias = "testAlias";
+        var builder = new DocumentTypeBuilder(_mockShortStringHelper.Object);
 
         // Act
-        var contentType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
-            .WithAlias(alias)
+        var contentType = builder
+            .SetAlias("page")
+            .SetName("Page")
             .Build();
 
         // Assert
-        contentType.Alias.Should().Be(alias);
+        contentType.Name.Should().Be("Page");
     }
 
     [Fact]
-    public void DocumentTypeBuilder_Should_Set_Name_Correctly()
+    public void DocumentTypeBuilder_Should_Set_Description()
     {
         // Arrange
-        const string name = "Test Document Type";
+        var builder = new DocumentTypeBuilder(_mockShortStringHelper.Object);
 
         // Act
-        var contentType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
-            .WithName(name)
+        var contentType = builder
+            .SetAlias("page")
+            .SetName("Page")
+            .SetDescription("A basic page content type")
             .Build();
 
         // Assert
-        contentType.Name.Should().Be(name);
+        contentType.Description.Should().Be("A basic page content type");
     }
 
     [Fact]
-    public void DocumentTypeBuilder_Should_Set_Description_Correctly()
+    public void DocumentTypeBuilder_Should_Set_Icon()
     {
         // Arrange
-        const string description = "Test description for document type";
+        var builder = new DocumentTypeBuilder(_mockShortStringHelper.Object);
 
         // Act
-        var contentType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
-            .WithDescription(description)
+        var contentType = builder
+            .SetAlias("page")
+            .SetName("Page")
+            .SetIcon("icon-document")
             .Build();
 
         // Assert
-        contentType.Description.Should().Be(description);
+        contentType.Icon.Should().Be("icon-document");
     }
 
     [Fact]
-    public void DocumentTypeBuilder_Should_Set_Icon_Correctly()
+    public void DocumentTypeBuilder_Should_Set_AllowedAtRoot()
     {
         // Arrange
-        const string icon = "icon-document";
+        var builder = new DocumentTypeBuilder(_mockShortStringHelper.Object);
 
         // Act
-        var contentType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
-            .WithIcon(icon)
-            .Build();
-
-        // Assert
-        contentType.Icon.Should().Be(icon);
-    }
-
-    [Fact]
-    public void DocumentTypeBuilder_Should_Allow_At_Root_When_True()
-    {
-        // Act
-        var contentType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
-            .AllowAtRoot(true)
+        var contentType = builder
+            .SetAlias("homePage")
+            .SetName("Home Page")
+            .SetAllowedAtRoot(true)
             .Build();
 
         // Assert
@@ -114,23 +110,16 @@ public class DocumentTypeBuilderTests
     }
 
     [Fact]
-    public void DocumentTypeBuilder_Should_Allow_At_Root_With_Default_Parameter()
+    public void DocumentTypeBuilder_Should_Set_AllowedAtRoot_False()
     {
-        // Act
-        var contentType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
-            .AllowAtRoot()
-            .Build();
+        // Arrange
+        var builder = new DocumentTypeBuilder(_mockShortStringHelper.Object);
 
-        // Assert
-        contentType.AllowedAsRoot.Should().BeTrue();
-    }
-
-    [Fact]
-    public void DocumentTypeBuilder_Should_Not_Allow_At_Root_When_False()
-    {
         // Act
-        var contentType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
-            .AllowAtRoot(false)
+        var contentType = builder
+            .SetAlias("subPage")
+            .SetName("Sub Page")
+            .SetAllowedAtRoot(false)
             .Build();
 
         // Assert
@@ -140,21 +129,14 @@ public class DocumentTypeBuilderTests
     [Fact]
     public void DocumentTypeBuilder_Should_Set_IsElement_True()
     {
-        // Act
-        var contentType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
-            .IsElement(true)
-            .Build();
+        // Arrange
+        var builder = new DocumentTypeBuilder(_mockShortStringHelper.Object);
 
-        // Assert
-        contentType.IsElement.Should().BeTrue();
-    }
-
-    [Fact]
-    public void DocumentTypeBuilder_Should_Set_IsElement_With_Default_Parameter()
-    {
         // Act
-        var contentType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
-            .IsElement()
+        var contentType = builder
+            .SetAlias("blockElement")
+            .SetName("Block Element")
+            .SetIsElement(true)
             .Build();
 
         // Assert
@@ -164,9 +146,14 @@ public class DocumentTypeBuilderTests
     [Fact]
     public void DocumentTypeBuilder_Should_Set_IsElement_False()
     {
+        // Arrange
+        var builder = new DocumentTypeBuilder(_mockShortStringHelper.Object);
+
         // Act
-        var contentType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
-            .IsElement(false)
+        var contentType = builder
+            .SetAlias("regularPage")
+            .SetName("Regular Page")
+            .SetIsElement(false)
             .Build();
 
         // Assert
@@ -174,202 +161,167 @@ public class DocumentTypeBuilderTests
     }
 
     [Fact]
-    public void DocumentTypeBuilder_Should_Add_Single_Tab()
+    public void DocumentTypeBuilder_Should_Add_Tab_With_Properties()
     {
+        // Arrange
+        var builder = new DocumentTypeBuilder(_mockShortStringHelper.Object);
+
         // Act
-        var contentType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
+        var contentType = builder
+            .SetAlias("page")
+            .SetName("Page")
             .AddTab("Content", tab => tab
-                .WithAlias("content")
-                .WithSortOrder(1))
+                .AddTextBoxProperty("title", "Title")
+                .AddTextAreaProperty("description", "Description"))
             .Build();
 
         // Assert
         contentType.PropertyGroups.Should().HaveCount(1);
         var tab = contentType.PropertyGroups.First();
         tab.Name.Should().Be("Content");
-        tab.Alias.Should().Be("content");
-        tab.SortOrder.Should().Be(1);
+        tab.PropertyTypes.Should().HaveCount(2);
+        
+        var titleProperty = tab.PropertyTypes.FirstOrDefault(p => p.Alias == "title");
+        titleProperty.Should().NotBeNull();
+        titleProperty!.Name.Should().Be("Title");
+        
+        var descriptionProperty = tab.PropertyTypes.FirstOrDefault(p => p.Alias == "description");
+        descriptionProperty.Should().NotBeNull();
+        descriptionProperty!.Name.Should().Be("Description");
     }
 
     [Fact]
     public void DocumentTypeBuilder_Should_Add_Multiple_Tabs()
     {
+        // Arrange
+        var builder = new DocumentTypeBuilder(_mockShortStringHelper.Object);
+
         // Act
-        var contentType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
+        var contentType = builder
+            .SetAlias("page")
+            .SetName("Page")
             .AddTab("Content", tab => tab
-                .WithAlias("content")
-                .WithSortOrder(1))
+                .AddTextBoxProperty("title", "Title"))
             .AddTab("Settings", tab => tab
-                .WithAlias("settings")
-                .WithSortOrder(2))
+                .AddCheckboxProperty("hideFromNavigation", "Hide from Navigation"))
             .Build();
 
         // Assert
         contentType.PropertyGroups.Should().HaveCount(2);
-        contentType.PropertyGroups.Should().Contain(t => t.Name == "Content");
-        contentType.PropertyGroups.Should().Contain(t => t.Name == "Settings");
-    }
-
-    [Fact]
-    public void DocumentTypeBuilder_Should_Add_Tab_With_Properties()
-    {
-        // Act
-        var contentType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
-            .AddTab("Content", tab => tab
-                .WithAlias("content")
-                .AddTextBoxProperty("Title", "title", prop => prop
-                    .IsMandatory()
-                    .WithDescription("Page title"))
-                .AddTextAreaProperty("Summary", "summary"))
-            .Build();
-
-        // Assert
-        contentType.PropertyGroups.Should().HaveCount(1);
-        var tab = contentType.PropertyGroups.First();
-        tab.PropertyTypes.Should().HaveCount(2);
-        tab.PropertyTypes!.Should().Contain(p => p.Alias == "title");
-        tab.PropertyTypes!.Should().Contain(p => p.Alias == "summary");
-    }
-
-    [Fact]
-    public void DocumentTypeBuilder_Should_Add_Composition()
-    {
-        // Arrange
-        var baseContentType = new Mock<IContentTypeComposition>();
-        baseContentType.Setup(x => x.Alias).Returns("baseType");
-
-        // Act
-        var contentType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
-            .WithAlias("derivedType")
-            .AddComposition(baseContentType.Object)
-            .Build();
-
-        // Assert
-        contentType.ContentTypeComposition.Should().HaveCount(1);
-        contentType.ContentTypeComposition.Should().Contain(baseContentType.Object);
+        
+        var contentTab = contentType.PropertyGroups.FirstOrDefault(g => g.Name == "Content");
+        contentTab.Should().NotBeNull();
+        contentTab!.PropertyTypes.Should().HaveCount(1);
+        
+        var settingsTab = contentType.PropertyGroups.FirstOrDefault(g => g.Name == "Settings");
+        settingsTab.Should().NotBeNull();
+        settingsTab!.PropertyTypes.Should().HaveCount(1);
     }
 
     [Fact]
     public void DocumentTypeBuilder_Should_Chain_All_Configuration_Methods()
     {
         // Arrange
-        const string alias = "testContentType";
-        const string name = "Test Content Type";
-        const string description = "A test content type";
-        const string icon = "icon-document";
-        var mockComposition = new Mock<IContentTypeComposition>();
+        var builder = new DocumentTypeBuilder(_mockShortStringHelper.Object);
 
         // Act
-        var contentType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
-            .WithAlias(alias)
-            .WithName(name)
-            .WithDescription(description)
-            .WithIcon(icon)
-            .AllowAtRoot(true)
-            .IsElement(false)
-            .AddTab("Content", tab => tab
-                .WithAlias("content")
-                .AddTextBoxProperty("Title", "title"))
-            .AddComposition(mockComposition.Object)
+        var contentType = builder
+            .SetAlias("complexPage")
+            .SetName("Complex Page")
+            .SetDescription("A complex page with all features")
+            .SetIcon("icon-layout")
+            .SetAllowedAtRoot(true)
+            .SetIsElement(false)
             .Build();
 
         // Assert
-        contentType.Alias.Should().Be(alias);
-        contentType.Name.Should().Be(name);
-        contentType.Description.Should().Be(description);
-        contentType.Icon.Should().Be(icon);
+        contentType.Should().NotBeNull();
+        contentType.Alias.Should().Be("complexPage");
+        contentType.Name.Should().Be("Complex Page");
+        contentType.Description.Should().Be("A complex page with all features");
+        contentType.Icon.Should().Be("icon-layout");
         contentType.AllowedAsRoot.Should().BeTrue();
         contentType.IsElement.Should().BeFalse();
-        contentType.PropertyGroups.Should().HaveCount(1);
-        contentType.ContentTypeComposition.Should().HaveCount(1);
     }
 
     [Fact]
-    public void DocumentTypeBuilder_Should_Return_Same_Instance_For_Method_Chaining()
+    public void DocumentTypeBuilder_Should_Have_Default_Values()
     {
         // Arrange
         var builder = new DocumentTypeBuilder(_mockShortStringHelper.Object);
 
-        // Act & Assert - Each method should return the same builder instance
-        builder.WithAlias("test").Should().BeSameAs(builder);
-        builder.WithName("Test").Should().BeSameAs(builder);
-        builder.WithDescription("Test").Should().BeSameAs(builder);
-        builder.WithIcon("icon-test").Should().BeSameAs(builder);
-        builder.AllowAtRoot().Should().BeSameAs(builder);
-        builder.IsElement().Should().BeSameAs(builder);
-    }
-
-    [Fact]
-    public void DocumentTypeBuilder_Should_Handle_Empty_String_Values()
-    {
         // Act
-        var contentType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
-            .WithAlias("")
-            .WithName("")
-            .WithDescription("")
-            .WithIcon("")
-            .Build();
+        var contentType = builder.Build();
 
         // Assert
-        contentType.Alias.Should().Be("");
-        contentType.Name.Should().Be("");
-        contentType.Description.Should().Be("");
-        contentType.Icon.Should().Be("");
+        contentType.Should().NotBeNull();
+        contentType.Alias.Should().Be("defaultAlias");
+        contentType.Name.Should().Be(string.Empty);
+        contentType.Icon.Should().Be("icon-document");
+        contentType.AllowedAsRoot.Should().BeFalse();
+        contentType.IsElement.Should().BeFalse();
+        contentType.PropertyGroups.Should().BeEmpty();
     }
 
     [Fact]
-    public void DocumentTypeBuilder_Should_Build_Multiple_Different_ContentTypes()
+    public void DocumentTypeBuilder_Should_Create_Document_Type_With_Complex_Structure()
     {
         // Arrange
         var builder = new DocumentTypeBuilder(_mockShortStringHelper.Object);
 
-        // Act - Build multiple different content types
-        var contentType1 = builder
-            .WithAlias("type1")
-            .WithName("Type 1")
-            .Build();
-
-        // Create a new builder for the second content type
-        var builder2 = new DocumentTypeBuilder(_mockShortStringHelper.Object);
-        var contentType2 = builder2
-            .WithAlias("type2")
-            .WithName("Type 2")
-            .Build();
-
-        // Assert - Should be different instances with different properties
-        contentType1.Should().NotBeSameAs(contentType2);
-        contentType1.Alias.Should().Be("type1");
-        contentType2.Alias.Should().Be("type2");
-    }
-
-    [Fact]
-    public void DocumentTypeBuilder_Should_Create_Element_Type_For_Block_Grid()
-    {
         // Act
-        var elementType = new DocumentTypeBuilder(_mockShortStringHelper.Object)
-            .WithAlias("heroBlock")
-            .WithName("Hero Block")
-            .WithDescription("Hero banner element for Block Grid")
-            .WithIcon("icon-picture")
-            .IsElement(true)
+        var contentType = builder
+            .SetAlias("blogPost")
+            .SetName("Blog Post")
+            .SetDescription("A blog post content type")
+            .SetIcon("icon-edit")
             .AddTab("Content", tab => tab
-                .WithAlias("content")
-                .AddTextBoxProperty("Headline", "headline", prop => prop
-                    .IsMandatory()
-                    .WithDescription("Hero headline"))
-                .AddMediaPickerProperty("Background Image", "backgroundImage"))
+                .AddTextBoxProperty("title", "Title", prop => prop.SetMandatory(true))
+                .AddTextAreaProperty("excerpt", "Excerpt")
+                .AddRichTextProperty("content", "Content", prop => prop.SetMandatory(true)))
+            .AddTab("Media", tab => tab
+                .AddMediaPickerProperty("featuredImage", "Featured Image"))
+            .AddTab("Settings", tab => tab
+                .AddDatePickerProperty("publishDate", "Publish Date")
+                .AddCheckboxProperty("featured", "Featured"))
             .Build();
 
         // Assert
-        elementType.IsElement.Should().BeTrue();
-        elementType.AllowedAsRoot.Should().BeFalse(); // Element types should not be at root
-        elementType.Alias.Should().Be("heroBlock");
-        elementType.Name.Should().Be("Hero Block");
-        elementType.PropertyGroups.Should().HaveCount(1);
+        contentType.Should().NotBeNull();
+        contentType.Alias.Should().Be("blogPost");
+        contentType.Name.Should().Be("Blog Post");
+        contentType.PropertyGroups.Should().HaveCount(3);
         
-        var contentTab = elementType.PropertyGroups.First();
-        contentTab.PropertyTypes.Should().HaveCount(2);
-        contentTab.PropertyTypes!.Should().Contain(p => p.Alias == "headline");
-        contentTab.PropertyTypes!.Should().Contain(p => p.Alias == "backgroundImage");
+        // Verify Content tab
+        var contentTab = contentType.PropertyGroups.First(g => g.Name == "Content");
+        contentTab.PropertyTypes.Should().HaveCount(3);
+        
+        // Verify Media tab
+        var mediaTab = contentType.PropertyGroups.First(g => g.Name == "Media");
+        mediaTab.PropertyTypes.Should().HaveCount(1);
+        
+        // Verify Settings tab
+        var settingsTab = contentType.PropertyGroups.First(g => g.Name == "Settings");
+        settingsTab.PropertyTypes.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void DocumentTypeBuilder_Should_Handle_Empty_Tab_Configuration()
+    {
+        // Arrange
+        var builder = new DocumentTypeBuilder(_mockShortStringHelper.Object);
+
+        // Act
+        var contentType = builder
+            .SetAlias("simplePage")
+            .SetName("Simple Page")
+            .AddTab("Empty Tab")
+            .Build();
+
+        // Assert
+        contentType.PropertyGroups.Should().HaveCount(1);
+        var tab = contentType.PropertyGroups.First();
+        tab.Name.Should().Be("Empty Tab");
+        tab.PropertyTypes.Should().BeEmpty();
     }
 }

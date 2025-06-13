@@ -1,3 +1,4 @@
+using System.Linq;
 using FluentAssertions;
 using Moq;
 using Umbraco.Cms.Core.Models;
@@ -24,120 +25,74 @@ public class TabBuilderTests
     }
 
     [Fact]
-    public void TabBuilder_Should_Create_Basic_Tab_With_Required_Fields()
+    public void TabBuilder_Should_Create_Basic_Tab()
     {
         // Arrange
-        const string tabName = "Content Tab";
+        var builder = new TabBuilder(_mockShortStringHelper.Object);
 
         // Act
-        var builder = new TabBuilder(tabName, _mockShortStringHelper.Object);
-        var tab = builder.Build();
+        var tab = builder
+            .SetName("Content")
+            .Build();
 
         // Assert
         tab.Should().NotBeNull();
-        tab.Name.Should().Be(tabName);
-        tab.Type.Should().Be(PropertyGroupType.Tab);
-        tab.PropertyTypes.Should().NotBeNull();
-        tab.PropertyTypes.Should().BeEmpty();
+        tab.Name.Should().Be("Content");
     }
 
     [Fact]
-    public void TabBuilder_Should_Set_Alias_Correctly()
+    public void TabBuilder_Should_Set_SortOrder()
     {
         // Arrange
-        const string alias = "contentTab";
-        var builder = new TabBuilder("Content Tab", _mockShortStringHelper.Object);
+        var builder = new TabBuilder(_mockShortStringHelper.Object);
 
         // Act
         var tab = builder
-            .WithAlias(alias)
+            .SetName("Settings")
+            .SetSortOrder(5)
             .Build();
 
         // Assert
-        tab.Alias.Should().Be(alias);
-    }
-
-    [Fact]
-    public void TabBuilder_Should_Set_SortOrder_Correctly()
-    {
-        // Arrange
-        const int sortOrder = 42;
-        var builder = new TabBuilder("Content Tab", _mockShortStringHelper.Object);
-
-        // Act
-        var tab = builder
-            .WithSortOrder(sortOrder)
-            .Build();
-
-        // Assert
-        tab.SortOrder.Should().Be(sortOrder);
-    }
-
-    [Fact]
-    public void TabBuilder_Should_Add_Custom_Property()
-    {
-        // Arrange
-        const string propertyName = "Custom Property";
-        const string propertyAlias = "customProperty";
-        const string editorAlias = "Custom.Editor";
-        var builder = new TabBuilder("Test Tab", _mockShortStringHelper.Object);
-
-        // Act
-        var tab = builder
-            .AddProperty(propertyName, propertyAlias, editorAlias, prop => prop
-                .WithDescription("Custom property description")
-                .IsMandatory())
-            .Build();
-
-        // Assert
-        tab.PropertyTypes.Should().HaveCount(1);
-        var property = tab.PropertyTypes!.First();
-        property.Name.Should().Be(propertyName);
-        property.Alias.Should().Be(propertyAlias);
-        property.PropertyEditorAlias.Should().Be(editorAlias);
-        property.Description.Should().Be("Custom property description");
-        property.Mandatory.Should().BeTrue();
+        tab.SortOrder.Should().Be(5);
     }
 
     [Fact]
     public void TabBuilder_Should_Add_TextBox_Property()
     {
         // Arrange
-        const string propertyName = "Title";
-        const string propertyAlias = "title";
-        var builder = new TabBuilder("Content", _mockShortStringHelper.Object);
+        var builder = new TabBuilder(_mockShortStringHelper.Object);
 
         // Act
         var tab = builder
-            .AddTextBoxProperty(propertyName, propertyAlias, prop => prop
-                .IsMandatory()
-                .WithDescription("Page title"))
+            .SetName("Content")
+            .AddTextBoxProperty("title", "Title")
             .Build();
 
         // Assert
         tab.PropertyTypes.Should().HaveCount(1);
-        var property = tab.PropertyTypes!.First();
-        property.Name.Should().Be(propertyName);
-        property.Alias.Should().Be(propertyAlias);
+        var property = tab.PropertyTypes.First();
+        property.Alias.Should().Be("title");
+        property.Name.Should().Be("Title");
         property.PropertyEditorAlias.Should().Be("Umbraco.TextBox");
-        property.Mandatory.Should().BeTrue();
-        property.Description.Should().Be("Page title");
     }
 
     [Fact]
     public void TabBuilder_Should_Add_TextArea_Property()
     {
         // Arrange
-        var builder = new TabBuilder("Content", _mockShortStringHelper.Object);
+        var builder = new TabBuilder(_mockShortStringHelper.Object);
 
         // Act
         var tab = builder
-            .AddTextAreaProperty("Summary", "summary")
+            .SetName("Content")
+            .AddTextAreaProperty("description", "Description")
             .Build();
 
         // Assert
         tab.PropertyTypes.Should().HaveCount(1);
-        var property = tab.PropertyTypes!.First();
+        var property = tab.PropertyTypes.First();
+        property.Alias.Should().Be("description");
+        property.Name.Should().Be("Description");
         property.PropertyEditorAlias.Should().Be("Umbraco.TextArea");
     }
 
@@ -145,33 +100,39 @@ public class TabBuilderTests
     public void TabBuilder_Should_Add_RichText_Property()
     {
         // Arrange
-        var builder = new TabBuilder("Content", _mockShortStringHelper.Object);
+        var builder = new TabBuilder(_mockShortStringHelper.Object);
 
         // Act
         var tab = builder
-            .AddRichTextProperty("Content", "content")
+            .SetName("Content")
+            .AddRichTextProperty("bodyText", "Body Text")
             .Build();
 
         // Assert
         tab.PropertyTypes.Should().HaveCount(1);
-        var property = tab.PropertyTypes!.First();
-        property.PropertyEditorAlias.Should().Be("Umbraco.TinyMCE");
+        var property = tab.PropertyTypes.First();
+        property.Alias.Should().Be("bodyText");
+        property.Name.Should().Be("Body Text");
+        property.PropertyEditorAlias.Should().Be("Umbraco.RichText");
     }
 
     [Fact]
     public void TabBuilder_Should_Add_MediaPicker_Property()
     {
         // Arrange
-        var builder = new TabBuilder("Media", _mockShortStringHelper.Object);
+        var builder = new TabBuilder(_mockShortStringHelper.Object);
 
         // Act
         var tab = builder
-            .AddMediaPickerProperty("Image", "image")
+            .SetName("Media")
+            .AddMediaPickerProperty("heroImage", "Hero Image")
             .Build();
 
         // Assert
         tab.PropertyTypes.Should().HaveCount(1);
-        var property = tab.PropertyTypes!.First();
+        var property = tab.PropertyTypes.First();
+        property.Alias.Should().Be("heroImage");
+        property.Name.Should().Be("Hero Image");
         property.PropertyEditorAlias.Should().Be("Umbraco.MediaPicker3");
     }
 
@@ -179,242 +140,205 @@ public class TabBuilderTests
     public void TabBuilder_Should_Add_ContentPicker_Property()
     {
         // Arrange
-        var builder = new TabBuilder("Links", _mockShortStringHelper.Object);
+        var builder = new TabBuilder(_mockShortStringHelper.Object);
 
         // Act
         var tab = builder
-            .AddContentPickerProperty("Related Page", "relatedPage")
+            .SetName("Links")
+            .AddContentPickerProperty("relatedPage", "Related Page")
             .Build();
 
         // Assert
         tab.PropertyTypes.Should().HaveCount(1);
-        var property = tab.PropertyTypes!.First();
+        var property = tab.PropertyTypes.First();
+        property.Alias.Should().Be("relatedPage");
+        property.Name.Should().Be("Related Page");
         property.PropertyEditorAlias.Should().Be("Umbraco.ContentPicker");
     }
 
     [Fact]
-    public void TabBuilder_Should_Add_Numeric_Property()
+    public void TabBuilder_Should_Add_Integer_Property()
     {
         // Arrange
-        var builder = new TabBuilder("Settings", _mockShortStringHelper.Object);
+        var builder = new TabBuilder(_mockShortStringHelper.Object);
 
         // Act
         var tab = builder
-            .AddNumericProperty("Price", "price")
+            .SetName("Settings")
+            .AddIntegerProperty("sortOrder", "Sort Order")
             .Build();
 
         // Assert
         tab.PropertyTypes.Should().HaveCount(1);
-        var property = tab.PropertyTypes!.First();
+        var property = tab.PropertyTypes.First();
+        property.Alias.Should().Be("sortOrder");
+        property.Name.Should().Be("Sort Order");
         property.PropertyEditorAlias.Should().Be("Umbraco.Integer");
+        property.ValueStorageType.Should().Be(ValueStorageType.Integer);
     }
 
     [Fact]
     public void TabBuilder_Should_Add_Checkbox_Property()
     {
         // Arrange
-        var builder = new TabBuilder("Settings", _mockShortStringHelper.Object);
+        var builder = new TabBuilder(_mockShortStringHelper.Object);
 
         // Act
         var tab = builder
-            .AddCheckboxProperty("Featured", "featured")
+            .SetName("Settings")
+            .AddCheckboxProperty("isActive", "Is Active")
             .Build();
 
         // Assert
         tab.PropertyTypes.Should().HaveCount(1);
-        var property = tab.PropertyTypes!.First();
+        var property = tab.PropertyTypes.First();
+        property.Alias.Should().Be("isActive");
+        property.Name.Should().Be("Is Active");
         property.PropertyEditorAlias.Should().Be("Umbraco.TrueFalse");
+        property.ValueStorageType.Should().Be(ValueStorageType.Integer);
     }
 
     [Fact]
     public void TabBuilder_Should_Add_DatePicker_Property()
     {
         // Arrange
-        var builder = new TabBuilder("Dates", _mockShortStringHelper.Object);
+        var builder = new TabBuilder(_mockShortStringHelper.Object);
 
         // Act
         var tab = builder
-            .AddDatePickerProperty("Publish Date", "publishDate")
+            .SetName("Dates")
+            .AddDatePickerProperty("publishDate", "Publish Date")
             .Build();
 
         // Assert
         tab.PropertyTypes.Should().HaveCount(1);
-        var property = tab.PropertyTypes!.First();
+        var property = tab.PropertyTypes.First();
+        property.Alias.Should().Be("publishDate");
+        property.Name.Should().Be("Publish Date");
         property.PropertyEditorAlias.Should().Be("Umbraco.DateTime");
+        property.ValueStorageType.Should().Be(ValueStorageType.Date);
     }
 
     [Fact]
     public void TabBuilder_Should_Add_Multiple_Properties()
     {
         // Arrange
-        var builder = new TabBuilder("All Properties", _mockShortStringHelper.Object);
+        var builder = new TabBuilder(_mockShortStringHelper.Object);
 
         // Act
         var tab = builder
-            .AddTextBoxProperty("Title", "title")
-            .AddTextAreaProperty("Summary", "summary")
-            .AddRichTextProperty("Content", "content")
-            .AddMediaPickerProperty("Image", "image")
-            .AddContentPickerProperty("Related", "related")
-            .AddNumericProperty("Price", "price")
-            .AddCheckboxProperty("Featured", "featured")
-            .AddDatePickerProperty("Date", "date")
+            .SetName("Content")
+            .AddTextBoxProperty("title", "Title")
+            .AddTextAreaProperty("description", "Description")
+            .AddRichTextProperty("bodyText", "Body Text")
+            .Build();
+
+        // Assert
+        tab.PropertyTypes.Should().HaveCount(3);
+        
+        var titleProperty = tab.PropertyTypes.FirstOrDefault(p => p.Alias == "title");
+        titleProperty.Should().NotBeNull();
+        titleProperty!.PropertyEditorAlias.Should().Be("Umbraco.TextBox");
+
+        var descriptionProperty = tab.PropertyTypes.FirstOrDefault(p => p.Alias == "description");
+        descriptionProperty.Should().NotBeNull();
+        descriptionProperty!.PropertyEditorAlias.Should().Be("Umbraco.TextArea");
+
+        var bodyTextProperty = tab.PropertyTypes.FirstOrDefault(p => p.Alias == "bodyText");
+        bodyTextProperty.Should().NotBeNull();
+        bodyTextProperty!.PropertyEditorAlias.Should().Be("Umbraco.RichText");
+    }
+
+    [Fact]
+    public void TabBuilder_Should_Configure_Property_With_Action()
+    {
+        // Arrange
+        var builder = new TabBuilder(_mockShortStringHelper.Object);
+
+        // Act
+        var tab = builder
+            .SetName("Content")
+            .AddTextBoxProperty("title", "Title", prop => prop
+                .SetMandatory(true)
+                .SetDescription("The page title"))
+            .Build();
+
+        // Assert
+        tab.PropertyTypes.Should().HaveCount(1);
+        var property = tab.PropertyTypes.First();
+        property.Mandatory.Should().BeTrue();
+        property.Description.Should().Be("The page title");
+    }
+
+    [Fact]
+    public void TabBuilder_Should_Handle_All_Property_Types_With_Configuration()
+    {
+        // Arrange
+        var builder = new TabBuilder(_mockShortStringHelper.Object);
+
+        // Act
+        var tab = builder
+            .SetName("All Properties")
+            .AddTextBoxProperty("textBox", "Text Box", p => p.SetMandatory(true))
+            .AddTextAreaProperty("textArea", "Text Area", p => p.SetDescription("Large text"))
+            .AddRichTextProperty("richText", "Rich Text", p => p.SetLabelOnTop(true))
+            .AddMediaPickerProperty("media", "Media", p => p.SetSortOrder(1))
+            .AddContentPickerProperty("content", "Content", p => p.SetSortOrder(2))
+            .AddIntegerProperty("integer", "Integer", p => p.SetSortOrder(3))
+            .AddCheckboxProperty("checkbox", "Checkbox", p => p.SetSortOrder(4))
+            .AddDatePickerProperty("date", "Date", p => p.SetSortOrder(5))
             .Build();
 
         // Assert
         tab.PropertyTypes.Should().HaveCount(8);
         
-        var propertyAliases = tab.PropertyTypes!.Select(p => p.Alias).ToList();
-        propertyAliases.Should().Contain("title");
-        propertyAliases.Should().Contain("summary");
-        propertyAliases.Should().Contain("content");
-        propertyAliases.Should().Contain("image");
-        propertyAliases.Should().Contain("related");
-        propertyAliases.Should().Contain("price");
-        propertyAliases.Should().Contain("featured");
-        propertyAliases.Should().Contain("date");
-    }
-
-    [Fact]
-    public void TabBuilder_Should_Handle_Null_Configuration_Action()
-    {
-        // Arrange
-        var builder = new TabBuilder("Test", _mockShortStringHelper.Object);
-
-        // Act
-        var tab = builder
-            .AddTextBoxProperty("Title", "title", null) // Null configuration action
-            .Build();
-
-        // Assert
-        tab.PropertyTypes.Should().HaveCount(1);
-        var property = tab.PropertyTypes!.First();
-        property.Name.Should().Be("Title");
-        property.Alias.Should().Be("title");
-        property.PropertyEditorAlias.Should().Be("Umbraco.TextBox");
-        // Should have default values when no configuration is provided
-        property.Mandatory.Should().BeFalse();
-        property.Description.Should().BeNullOrEmpty();
-    }
-
-    [Fact]
-    public void TabBuilder_Should_Chain_Configuration_Methods()
-    {
-        // Arrange
-        const string alias = "advancedTab";
-        const int sortOrder = 5;
-        var builder = new TabBuilder("Advanced Tab", _mockShortStringHelper.Object);
-
-        // Act
-        var tab = builder
-            .WithAlias(alias)
-            .WithSortOrder(sortOrder)
-            .AddTextBoxProperty("Property 1", "prop1")
-            .AddTextAreaProperty("Property 2", "prop2")
-            .Build();
-
-        // Assert
-        tab.Alias.Should().Be(alias);
-        tab.SortOrder.Should().Be(sortOrder);
-        tab.PropertyTypes.Should().HaveCount(2);
-    }
-
-    [Fact]
-    public void TabBuilder_Should_Return_Same_Instance_For_Method_Chaining()
-    {
-        // Arrange
-        var builder = new TabBuilder("Test Tab", _mockShortStringHelper.Object);
-
-        // Act & Assert - Each method should return the same builder instance
-        var result1 = builder.WithAlias("test");
-        var result2 = result1.WithSortOrder(1);
-        var result3 = result2.AddTextBoxProperty("Test", "test");
-
-        result1.Should().BeSameAs(builder);
-        result2.Should().BeSameAs(builder);
-        result3.Should().BeSameAs(builder);
-    }
-
-    [Fact]
-    public void TabBuilder_Should_Handle_Properties_With_Complex_Configuration()
-    {
-        // Arrange
-        var builder = new TabBuilder("Complex Tab", _mockShortStringHelper.Object);
-
-        // Act
-        var tab = builder
-            .AddTextBoxProperty("Title", "title", prop => prop
-                .IsMandatory()
-                .WithDescription("The page title")
-                .WithSortOrder(1)
-                .WithValidationRegex("^.{1,100}$")
-                .WithLabelOnTop())
-            .AddNumericProperty("Price", "price", prop => prop
-                .IsMandatory()
-                .WithDescription("Product price")
-                .WithValueStorageType(ValueStorageType.Decimal)
-                .WithSortOrder(2))
-            .Build();
-
-        // Assert
-        tab.PropertyTypes.Should().HaveCount(2);
+        // Verify each property type exists and has correct configuration
+        var textBoxProp = tab.PropertyTypes.First(p => p.Alias == "textBox");
+        textBoxProp.Mandatory.Should().BeTrue();
         
-        var titleProperty = tab.PropertyTypes!.First(p => p.Alias == "title");
-        titleProperty.Mandatory.Should().BeTrue();
-        titleProperty.Description.Should().Be("The page title");
-        titleProperty.SortOrder.Should().Be(1);
-        titleProperty.ValidationRegExp.Should().Be("^.{1,100}$");
-        titleProperty.LabelOnTop.Should().BeTrue();
-
-        var priceProperty = tab.PropertyTypes!.First(p => p.Alias == "price");
-        priceProperty.Mandatory.Should().BeTrue();
-        priceProperty.Description.Should().Be("Product price");
-        priceProperty.ValueStorageType.Should().Be(ValueStorageType.Decimal);
-        priceProperty.SortOrder.Should().Be(2);
+        var textAreaProp = tab.PropertyTypes.First(p => p.Alias == "textArea");
+        textAreaProp.Description.Should().Be("Large text");
+        
+        var richTextProp = tab.PropertyTypes.First(p => p.Alias == "richText");
+        richTextProp.LabelOnTop.Should().BeTrue();
+        
+        var mediaProp = tab.PropertyTypes.First(p => p.Alias == "media");
+        mediaProp.SortOrder.Should().Be(1);
+        
+        var contentProp = tab.PropertyTypes.First(p => p.Alias == "content");
+        contentProp.SortOrder.Should().Be(2);
+        
+        var integerProp = tab.PropertyTypes.First(p => p.Alias == "integer");
+        integerProp.SortOrder.Should().Be(3);
+        integerProp.ValueStorageType.Should().Be(ValueStorageType.Integer);
+        
+        var checkboxProp = tab.PropertyTypes.First(p => p.Alias == "checkbox");
+        checkboxProp.SortOrder.Should().Be(4);
+        checkboxProp.ValueStorageType.Should().Be(ValueStorageType.Integer);
+        
+        var dateProp = tab.PropertyTypes.First(p => p.Alias == "date");
+        dateProp.SortOrder.Should().Be(5);
+        dateProp.ValueStorageType.Should().Be(ValueStorageType.Date);
     }
 
     [Fact]
-    public void TabBuilder_Should_Handle_Empty_Property_Configuration()
+    public void TabBuilder_Should_Chain_All_Configuration_Methods()
     {
         // Arrange
-        var builder = new TabBuilder("Empty Config Tab", _mockShortStringHelper.Object);
+        var builder = new TabBuilder(_mockShortStringHelper.Object);
 
         // Act
         var tab = builder
-            .AddTextBoxProperty("Title", "title", prop => { }) // Empty configuration
+            .SetName("Complex Tab")
+            .SetSortOrder(10)
+            .AddTextBoxProperty("prop1", "Property 1")
+            .AddTextAreaProperty("prop2", "Property 2")
             .Build();
 
         // Assert
-        tab.PropertyTypes.Should().HaveCount(1);
-        var property = tab.PropertyTypes!.First();
-        property.Name.Should().Be("Title");
-        property.Alias.Should().Be("title");
-        // Should have default values
-        property.Mandatory.Should().BeFalse();
-        property.SortOrder.Should().Be(0);
-    }
-
-    [Theory]
-    [InlineData("Umbraco.TextBox")]
-    [InlineData("Umbraco.TextArea")]  
-    [InlineData("Umbraco.TinyMCE")]
-    [InlineData("Umbraco.MediaPicker3")]
-    [InlineData("Umbraco.ContentPicker")]
-    [InlineData("Umbraco.Integer")]
-    [InlineData("Umbraco.TrueFalse")]
-    [InlineData("Umbraco.DateTime")]
-    public void TabBuilder_Should_Support_All_Common_Umbraco_Property_Editors(string editorAlias)
-    {
-        // Arrange
-        var builder = new TabBuilder("Test Tab", _mockShortStringHelper.Object);
-
-        // Act
-        var tab = builder
-            .AddProperty("Test Property", "testProperty", editorAlias, prop => { })
-            .Build();
-
-        // Assert
-        tab.PropertyTypes.Should().HaveCount(1);
-        tab.PropertyTypes!.First().PropertyEditorAlias.Should().Be(editorAlias);
+        tab.Should().NotBeNull();
+        tab.Name.Should().Be("Complex Tab");
+        tab.SortOrder.Should().Be(10);
+        tab.PropertyTypes.Should().HaveCount(2);
     }
 }

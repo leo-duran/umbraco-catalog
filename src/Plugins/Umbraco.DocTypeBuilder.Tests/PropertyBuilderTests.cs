@@ -1,3 +1,4 @@
+using System.Linq;
 using FluentAssertions;
 using Moq;
 using Umbraco.Cms.Core.Models;
@@ -24,262 +25,241 @@ public class PropertyBuilderTests
     }
 
     [Fact]
-    public void PropertyBuilder_Should_Create_Basic_Property_With_Required_Fields()
+    public void PropertyBuilder_Should_Create_Basic_Property()
     {
         // Arrange
-        const string name = "Test Property";
-        const string alias = "testProperty";
-        const string editorAlias = "Umbraco.TextBox";
+        var builder = new PropertyBuilder(_mockShortStringHelper.Object);
 
         // Act
-        var builder = new PropertyBuilder(name, alias, editorAlias, _mockShortStringHelper.Object);
+        var property = builder
+            .SetAlias("testProperty")
+            .SetName("Test Property")
+            .Build();
+
+        // Assert
+        property.Should().NotBeNull();
+        property.Alias.Should().Be("testProperty");
+        property.Name.Should().Be("Test Property");
+    }
+
+    [Fact]
+    public void PropertyBuilder_Should_Set_Description()
+    {
+        // Arrange
+        var builder = new PropertyBuilder(_mockShortStringHelper.Object);
+
+        // Act
+        var property = builder
+            .SetAlias("customProperty")
+            .SetName("Custom Property")
+            .SetDescription("This is a custom property")
+            .Build();
+
+        // Assert
+        property.Description.Should().Be("This is a custom property");
+    }
+
+    [Fact]
+    public void PropertyBuilder_Should_Set_Mandatory()
+    {
+        // Arrange
+        var builder = new PropertyBuilder(_mockShortStringHelper.Object);
+
+        // Act
+        var property = builder
+            .SetAlias("mandatoryProperty")
+            .SetName("Mandatory Property")
+            .SetMandatory(true)
+            .Build();
+
+        // Assert
+        property.Mandatory.Should().BeTrue();
+    }
+
+    [Fact]
+    public void PropertyBuilder_Should_Set_ValueStorageType()
+    {
+        // Arrange
+        var builder = new PropertyBuilder(_mockShortStringHelper.Object);
+
+        // Act
+        var property = builder
+            .SetAlias("integerProperty")
+            .SetName("Integer Property")
+            .SetValueStorageType(ValueStorageType.Integer)
+            .Build();
+
+        // Assert
+        property.ValueStorageType.Should().Be(ValueStorageType.Integer);
+    }
+
+    [Fact]
+    public void PropertyBuilder_Should_Set_SortOrder()
+    {
+        // Arrange
+        var builder = new PropertyBuilder(_mockShortStringHelper.Object);
+
+        // Act
+        var property = builder
+            .SetAlias("sortedProperty")
+            .SetName("Sorted Property")
+            .SetSortOrder(5)
+            .Build();
+
+        // Assert
+        property.SortOrder.Should().Be(5);
+    }
+
+    [Fact]
+    public void PropertyBuilder_Should_Set_ValidationRegex()
+    {
+        // Arrange
+        var builder = new PropertyBuilder(_mockShortStringHelper.Object);
+
+        // Act
+        var property = builder
+            .SetAlias("validatedProperty")
+            .SetName("Validated Property")
+            .SetValidation(@"^\d+$", "Must be numeric")
+            .Build();
+
+        // Assert
+        property.ValidationRegExp.Should().Be(@"^\d+$");
+        property.ValidationRegExpMessage.Should().Be("Must be numeric");
+    }
+
+    [Fact]
+    public void PropertyBuilder_Should_Set_PropertyEditorAlias()
+    {
+        // Arrange
+        var builder = new PropertyBuilder(_mockShortStringHelper.Object);
+
+        // Act
+        var property = builder
+            .SetAlias("richTextProperty")
+            .SetName("Rich Text Property")
+            .SetPropertyEditorAlias("Umbraco.RichText")
+            .Build();
+
+        // Assert
+        property.PropertyEditorAlias.Should().Be("Umbraco.RichText");
+    }
+
+    [Fact]
+    public void PropertyBuilder_Should_Set_LabelOnTop()
+    {
+        // Arrange
+        var builder = new PropertyBuilder(_mockShortStringHelper.Object);
+
+        // Act
+        var property = builder
+            .SetAlias("labelTopProperty")
+            .SetName("Label Top Property")
+            .SetLabelOnTop(true)
+            .Build();
+
+        // Assert
+        property.LabelOnTop.Should().BeTrue();
+    }
+
+    [Fact]
+    public void PropertyBuilder_Should_Chain_All_Configuration_Methods()
+    {
+        // Arrange
+        var builder = new PropertyBuilder(_mockShortStringHelper.Object);
+
+        // Act
+        var property = builder
+            .SetAlias("complexProperty")
+            .SetName("Complex Property")
+            .SetDescription("A complex property with all options")
+            .SetPropertyEditorAlias("Umbraco.TextBox")
+            .SetMandatory(true)
+            .SetLabelOnTop(true)
+            .SetValidation(@"^[A-Za-z]+$", "Letters only")
+            .SetValueStorageType(ValueStorageType.Nvarchar)
+            .SetSortOrder(10)
+            .Build();
+
+        // Assert
+        property.Should().NotBeNull();
+        property.Alias.Should().Be("complexProperty");
+        property.Name.Should().Be("Complex Property");
+        property.Description.Should().Be("A complex property with all options");
+        property.PropertyEditorAlias.Should().Be("Umbraco.TextBox");
+        property.Mandatory.Should().BeTrue();
+        property.LabelOnTop.Should().BeTrue();
+        property.ValidationRegExp.Should().Be(@"^[A-Za-z]+$");
+        property.ValidationRegExpMessage.Should().Be("Letters only");
+        property.ValueStorageType.Should().Be(ValueStorageType.Nvarchar);
+        property.SortOrder.Should().Be(10);
+    }
+
+    [Fact]
+    public void PropertyBuilder_Should_Have_Default_Values()
+    {
+        // Arrange
+        var builder = new PropertyBuilder(_mockShortStringHelper.Object);
+
+        // Act
         var property = builder.Build();
 
         // Assert
         property.Should().NotBeNull();
-        property.Name.Should().Be(name);
-        property.Alias.Should().Be(alias);
-        property.PropertyEditorAlias.Should().Be(editorAlias);
-        property.ValueStorageType.Should().Be(ValueStorageType.Nvarchar); // Default value
-    }
-
-    [Fact]
-    public void PropertyBuilder_Should_Set_Description_Correctly()
-    {
-        // Arrange
-        const string description = "This is a test property description";
-        var builder = new PropertyBuilder("Test", "test", "Umbraco.TextBox", _mockShortStringHelper.Object);
-
-        // Act
-        var property = builder
-            .WithDescription(description)
-            .Build();
-
-        // Assert
-        property.Description.Should().Be(description);
-    }
-
-    [Fact]
-    public void PropertyBuilder_Should_Set_Mandatory_Flag_Correctly()
-    {
-        // Arrange
-        var builder = new PropertyBuilder("Test", "test", "Umbraco.TextBox", _mockShortStringHelper.Object);
-
-        // Act
-        var mandatoryProperty = builder
-            .IsMandatory(true)
-            .Build();
-
-        var optionalProperty = new PropertyBuilder("Test2", "test2", "Umbraco.TextBox", _mockShortStringHelper.Object)
-            .IsMandatory(false)
-            .Build();
-
-        // Assert
-        mandatoryProperty.Mandatory.Should().BeTrue();
-        optionalProperty.Mandatory.Should().BeFalse();
-    }
-
-    [Fact]
-    public void PropertyBuilder_Should_Set_Mandatory_Flag_Default_True_When_No_Parameter()
-    {
-        // Arrange
-        var builder = new PropertyBuilder("Test", "test", "Umbraco.TextBox", _mockShortStringHelper.Object);
-
-        // Act
-        var property = builder
-            .IsMandatory() // No parameter - should default to true
-            .Build();
-
-        // Assert
-        property.Mandatory.Should().BeTrue();
+        property.Alias.Should().Be("defaultProperty");
+        property.Name.Should().Be(string.Empty);
+        property.PropertyEditorAlias.Should().Be("Umbraco.TextBox");
+        property.Mandatory.Should().BeFalse();
+        property.LabelOnTop.Should().BeFalse();
+        property.ValueStorageType.Should().Be(ValueStorageType.Nvarchar);
+        property.SortOrder.Should().Be(0);
     }
 
     [Theory]
-    [InlineData(ValueStorageType.Nvarchar)]
-    [InlineData(ValueStorageType.Ntext)]
-    [InlineData(ValueStorageType.Integer)]
-    [InlineData(ValueStorageType.Decimal)]
-    [InlineData(ValueStorageType.Date)]
-    public void PropertyBuilder_Should_Set_ValueStorageType_Correctly(ValueStorageType storageType)
+    [InlineData("Umbraco.TextBox", ValueStorageType.Nvarchar)]
+    [InlineData("Umbraco.TextArea", ValueStorageType.Nvarchar)]
+    [InlineData("Umbraco.RichText", ValueStorageType.Ntext)]
+    [InlineData("Umbraco.MediaPicker3", ValueStorageType.Ntext)]
+    [InlineData("Umbraco.ContentPicker", ValueStorageType.Nvarchar)]
+    [InlineData("Umbraco.Integer", ValueStorageType.Integer)]
+    [InlineData("Umbraco.TrueFalse", ValueStorageType.Integer)]
+    [InlineData("Umbraco.DateTime", ValueStorageType.Date)]
+    public void PropertyBuilder_Should_Support_Different_Property_Types(string editorAlias, ValueStorageType expectedStorageType)
     {
         // Arrange
-        var builder = new PropertyBuilder("Test", "test", "Umbraco.TextBox", _mockShortStringHelper.Object);
+        var builder = new PropertyBuilder(_mockShortStringHelper.Object);
 
         // Act
         var property = builder
-            .WithValueStorageType(storageType)
+            .SetAlias($"test{editorAlias.Replace(".", "")}")
+            .SetName($"Test {editorAlias}")
+            .SetPropertyEditorAlias(editorAlias)
+            .SetValueStorageType(expectedStorageType)
             .Build();
 
         // Assert
-        property.ValueStorageType.Should().Be(storageType);
+        property.PropertyEditorAlias.Should().Be(editorAlias);
+        property.ValueStorageType.Should().Be(expectedStorageType);
     }
 
     [Fact]
-    public void PropertyBuilder_Should_Set_SortOrder_Correctly()
+    public void PropertyBuilder_Should_Handle_Null_Values_Gracefully()
     {
         // Arrange
-        const int sortOrder = 42;
-        var builder = new PropertyBuilder("Test", "test", "Umbraco.TextBox", _mockShortStringHelper.Object);
+        var builder = new PropertyBuilder(_mockShortStringHelper.Object);
 
         // Act
         var property = builder
-            .WithSortOrder(sortOrder)
+            .SetAlias("nullTestProperty")
+            .SetName("Null Test Property")
+            .SetDescription(null!)
+            .SetValidation(null!, null!)
             .Build();
 
         // Assert
-        property.SortOrder.Should().Be(sortOrder);
-    }
-
-    [Fact]
-    public void PropertyBuilder_Should_Set_ValidationRegex_Correctly()
-    {
-        // Arrange
-        const string regex = "^[a-zA-Z0-9]*$";
-        var builder = new PropertyBuilder("Test", "test", "Umbraco.TextBox", _mockShortStringHelper.Object);
-
-        // Act
-        var property = builder
-            .WithValidationRegex(regex)
-            .Build();
-
-        // Assert
-        property.ValidationRegExp.Should().Be(regex);
-    }
-
-    [Fact]
-    public void PropertyBuilder_Should_Set_DataTypeDefinitionId_Correctly()
-    {
-        // Arrange
-        const int dataTypeId = 123;
-        var builder = new PropertyBuilder("Test", "test", "Umbraco.TextBox", _mockShortStringHelper.Object);
-
-        // Act
-        var property = builder
-            .WithDataTypeDefinitionId(dataTypeId)
-            .Build();
-
-        // Assert
-        property.DataTypeId.Should().Be(dataTypeId);
-    }
-
-    [Fact]
-    public void PropertyBuilder_Should_Set_LabelOnTop_Correctly()
-    {
-        // Arrange
-        var builder = new PropertyBuilder("Test", "test", "Umbraco.TextBox", _mockShortStringHelper.Object);
-
-        // Act
-        var labelOnTopProperty = builder
-            .WithLabelOnTop(true)
-            .Build();
-
-        var labelNotOnTopProperty = new PropertyBuilder("Test2", "test2", "Umbraco.TextBox", _mockShortStringHelper.Object)
-            .WithLabelOnTop(false)
-            .Build();
-
-        // Assert
-        labelOnTopProperty.LabelOnTop.Should().BeTrue();
-        labelNotOnTopProperty.LabelOnTop.Should().BeFalse();
-    }
-
-    [Fact]
-    public void PropertyBuilder_Should_Set_LabelOnTop_Default_True_When_No_Parameter()
-    {
-        // Arrange
-        var builder = new PropertyBuilder("Test", "test", "Umbraco.TextBox", _mockShortStringHelper.Object);
-
-        // Act
-        var property = builder
-            .WithLabelOnTop() // No parameter - should default to true
-            .Build();
-
-        // Assert
-        property.LabelOnTop.Should().BeTrue();
-    }
-
-    [Fact]
-    public void PropertyBuilder_Should_Chain_Multiple_Configuration_Methods()
-    {
-        // Arrange
-        const string description = "Advanced property configuration";
-        const int sortOrder = 5;
-        const string regex = "^[a-zA-Z0-9]*$";
-
-        var builder = new PropertyBuilder("Advanced Property", "advancedProperty", "Umbraco.TextBox", _mockShortStringHelper.Object);
-
-        // Act
-        var property = builder
-            .WithDescription(description)
-            .IsMandatory(true)
-            .WithSortOrder(sortOrder)
-            .WithValidationRegex(regex)
-            .WithLabelOnTop(true)
-            .WithValueStorageType(ValueStorageType.Ntext)
-            .Build();
-
-        // Assert
-        property.Description.Should().Be(description);
-        property.Mandatory.Should().BeTrue();
-        property.SortOrder.Should().Be(sortOrder);
-        property.ValidationRegExp.Should().Be(regex);
-        property.LabelOnTop.Should().BeTrue();
-        property.ValueStorageType.Should().Be(ValueStorageType.Ntext);
-    }
-
-    [Fact]
-    public void PropertyBuilder_Should_Handle_Empty_String_Values_Gracefully()
-    {
-        // Arrange & Act
-        var property = new PropertyBuilder("", "", "", _mockShortStringHelper.Object)
-            .WithDescription("")
-            .WithValidationRegex("")
-            .Build();
-
-        // Assert
-        property.Name.Should().Be("");
-        property.Alias.Should().Be("");
-        property.PropertyEditorAlias.Should().Be("");
-        property.Description.Should().Be("");
-        property.ValidationRegExp.Should().Be("");
-    }
-
-    [Fact]
-    public void PropertyBuilder_Should_Handle_Common_Umbraco_Editor_Aliases()
-    {
-        // Arrange & Act
-        var textBoxProperty = new PropertyBuilder("TextBox", "textBox", "Umbraco.TextBox", _mockShortStringHelper.Object).Build();
-        var textAreaProperty = new PropertyBuilder("TextArea", "textArea", "Umbraco.TextArea", _mockShortStringHelper.Object).Build();
-        var richTextProperty = new PropertyBuilder("RichText", "richText", "Umbraco.TinyMCE", _mockShortStringHelper.Object).Build();
-        var mediaPickerProperty = new PropertyBuilder("MediaPicker", "mediaPicker", "Umbraco.MediaPicker3", _mockShortStringHelper.Object).Build();
-        var contentPickerProperty = new PropertyBuilder("ContentPicker", "contentPicker", "Umbraco.ContentPicker", _mockShortStringHelper.Object).Build();
-        var numericProperty = new PropertyBuilder("Numeric", "numeric", "Umbraco.Integer", _mockShortStringHelper.Object).Build();
-        var checkboxProperty = new PropertyBuilder("Checkbox", "checkbox", "Umbraco.TrueFalse", _mockShortStringHelper.Object).Build();
-        var datePickerProperty = new PropertyBuilder("DatePicker", "datePicker", "Umbraco.DateTime", _mockShortStringHelper.Object).Build();
-
-        // Assert
-        textBoxProperty.PropertyEditorAlias.Should().Be("Umbraco.TextBox");
-        textAreaProperty.PropertyEditorAlias.Should().Be("Umbraco.TextArea");
-        richTextProperty.PropertyEditorAlias.Should().Be("Umbraco.TinyMCE");
-        mediaPickerProperty.PropertyEditorAlias.Should().Be("Umbraco.MediaPicker3");
-        contentPickerProperty.PropertyEditorAlias.Should().Be("Umbraco.ContentPicker");
-        numericProperty.PropertyEditorAlias.Should().Be("Umbraco.Integer");
-        checkboxProperty.PropertyEditorAlias.Should().Be("Umbraco.TrueFalse");
-        datePickerProperty.PropertyEditorAlias.Should().Be("Umbraco.DateTime");
-    }
-
-    [Fact]
-    public void PropertyBuilder_Should_Return_Same_Instance_For_Method_Chaining()
-    {
-        // Arrange
-        var builder = new PropertyBuilder("Test", "test", "Umbraco.TextBox", _mockShortStringHelper.Object);
-
-        // Act & Assert - Each method should return the same builder instance
-        var result1 = builder.WithDescription("test");
-        var result2 = result1.IsMandatory();
-        var result3 = result2.WithSortOrder(1);
-
-        result1.Should().BeSameAs(builder);
-        result2.Should().BeSameAs(builder);
-        result3.Should().BeSameAs(builder);
+        property.Should().NotBeNull();
+        property.Description.Should().BeEmpty();
+        property.ValidationRegExp.Should().BeEmpty();
+        property.ValidationRegExpMessage.Should().BeEmpty();
     }
 }
