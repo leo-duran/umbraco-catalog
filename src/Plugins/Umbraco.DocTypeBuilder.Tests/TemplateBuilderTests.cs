@@ -1,3 +1,4 @@
+using System.Linq;
 using FluentAssertions;
 using Moq;
 using Umbraco.Cms.Core.Models;

@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Strings;
 
@@ -84,89 +86,6 @@ public class DocumentTypeBuilder
     public DocumentTypeBuilder IsElement(bool isElement = true)
     {
         _contentType.IsElement = isElement;
-        return this;
-    }
-
-    /// <summary>
-    /// Sets the default template for the document type.
-    /// </summary>
-    /// <param name="templateAlias">The alias of the default template.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public DocumentTypeBuilder WithDefaultTemplate(string templateAlias)
-    {
-        _contentType.DefaultTemplate = new Template(_shortStringHelper, string.Empty, templateAlias)
-        {
-            Alias = templateAlias
-        };
-        return this;
-    }
-
-    /// <summary>
-    /// Sets the default template for the document type.
-    /// </summary>
-    /// <param name="template">The default template to set.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public DocumentTypeBuilder WithDefaultTemplate(ITemplate template)
-    {
-        _contentType.DefaultTemplate = template;
-        return this;
-    }
-
-    /// <summary>
-    /// Adds an allowed template to the document type.
-    /// </summary>
-    /// <param name="templateAlias">The alias of the allowed template.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public DocumentTypeBuilder AddAllowedTemplate(string templateAlias)
-    {
-        var template = new Template(_shortStringHelper, string.Empty, templateAlias)
-        {
-            Alias = templateAlias
-        };
-        _contentType.AllowedTemplates = _contentType.AllowedTemplates.Append(template);
-        return this;
-    }
-
-    /// <summary>
-    /// Adds an allowed template to the document type.
-    /// </summary>
-    /// <param name="template">The allowed template to add.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public DocumentTypeBuilder AddAllowedTemplate(ITemplate template)
-    {
-        _contentType.AllowedTemplates = _contentType.AllowedTemplates.Append(template);
-        return this;
-    }
-
-    /// <summary>
-    /// Sets multiple allowed templates for the document type.
-    /// </summary>
-    /// <param name="templateAliases">The aliases of the allowed templates.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public DocumentTypeBuilder WithAllowedTemplates(params string[] templateAliases)
-    {
-        if (templateAliases?.Length > 0)
-        {
-            var templates = templateAliases.Select(alias => new Template(_shortStringHelper, string.Empty, alias)
-            {
-                Alias = alias
-            });
-            _contentType.AllowedTemplates = templates;
-        }
-        return this;
-    }
-
-    /// <summary>
-    /// Sets multiple allowed templates for the document type.
-    /// </summary>
-    /// <param name="templates">The allowed templates to set.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    public DocumentTypeBuilder WithAllowedTemplates(params ITemplate[] templates)
-    {
-        if (templates?.Length > 0)
-        {
-            _contentType.AllowedTemplates = templates;
-        }
         return this;
     }
 
