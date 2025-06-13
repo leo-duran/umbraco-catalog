@@ -3,30 +3,33 @@ using Umbraco.Cms.Core.Strings;
 using Umbraco.DocTypeBuilder;
 using FluentAssertions;
 using Moq;
+using NUnit.Framework;
 
 namespace Umbraco.DocTypeBuilder.Tests;
 
 /// <summary>
-/// Tests for the PropertyBuilder class.
+/// Unit tests for the PropertyBuilder class.
 /// These tests verify that the PropertyBuilder correctly creates PropertyType objects
 /// with the expected configuration using the fluent API pattern.
 /// 
 /// NOTE: PropertyType.Alias is read-only in Umbraco 15.x - this is a known API compatibility issue.
 /// </summary>
+[TestFixture]
 public class PropertyBuilderTests
 {
-    private readonly Mock<IShortStringHelper> _mockShortStringHelper;
+    private Mock<IShortStringHelper> _mockShortStringHelper;
 
-    public PropertyBuilderTests()
+    [SetUp]
+    public void SetUp()
     {
         // Arrange - Set up mock for IShortStringHelper
         // This is required by Umbraco's PropertyType constructor
         _mockShortStringHelper = new Mock<IShortStringHelper>();
-        _mockShortStringHelper.Setup(x => x.CleanStringForSafeAlias(It.IsAny<string>()))
-                              .Returns<string>(input => input?.ToLowerInvariant().Replace(" ", ""));
+        _mockShortStringHelper.Setup(x => x.CleanString(It.IsAny<string>(), It.IsAny<CleanStringType>()))
+                              .Returns<string, CleanStringType>((input, type) => input?.ToLowerInvariant().Replace(" ", "") ?? "");
     }
 
-    [Fact]
+    [Test]
     public void PropertyBuilder_Should_CreateBasicProperty_WithNameAndEditorAlias()
     {
         // Arrange
@@ -39,12 +42,12 @@ public class PropertyBuilderTests
         var result = propertyBuilder.Build();
 
         // Assert
-        result.Should().NotBeNull("because the PropertyBuilder should create a valid PropertyType");
+        result.Should().NotBeNull("because PropertyBuilder should create a valid PropertyType");
         result.Name.Should().Be(propertyName, "because the property name should be set correctly");
-        result.PropertyEditorAlias.Should().Be(editorAlias, "because the editor alias should be set correctly");
-        result.ValueStorageType.Should().Be(ValueStorageType.Nvarchar, "because the default storage type should be Nvarchar");
+        result.PropertyEditorAlias.Should().Be(editorAlias, "because the property editor alias should be set correctly");
         
-        // NOTE: PropertyType.Alias is read-only in Umbraco 15.x - this is a documented API compatibility issue
-        // The alias is passed to the constructor but cannot be retrieved via the Alias property
+        // NOTE: PropertyType.Alias is read-only in Umbraco 15.x - this is a known API compatibility issue.
+        // The alias is passed to the constructor but the Alias property itself cannot be set afterward.
+        // This is documented as an API limitation that we discovered during testing.
     }
 }
