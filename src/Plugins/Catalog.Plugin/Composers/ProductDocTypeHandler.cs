@@ -1,8 +1,10 @@
 using Umbraco.Cms.Core.Events;
 using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Scoping;
 using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
+using Umbraco.DocTypeBuilder;
 
 namespace Catalog.Plugin.Composers;
 
@@ -11,41 +13,42 @@ public class ProductDocTypeHandler : INotificationAsyncHandler<UmbracoApplicatio
     const string contentTypeAlias = "product";
     private readonly IShortStringHelper _shortStringHelper;
     private readonly IContentTypeService _contentTypeService;
+    private readonly ICoreScopeProvider _scopeProvider;
 
-    public ProductDocTypeHandler(IShortStringHelper shortStringHelper, IContentTypeService contentTypeService)
+    public ProductDocTypeHandler(IShortStringHelper shortStringHelper, IContentTypeService contentTypeService, ICoreScopeProvider scopeProvider)
     {
         _shortStringHelper = shortStringHelper;
         _contentTypeService = contentTypeService;
+        _scopeProvider = scopeProvider;
     }
 
     public async Task HandleAsync(UmbracoApplicationStartingNotification notification, CancellationToken cancellationToken)
     {
-        var contentType = new ContentType(_shortStringHelper, -1)
+        using (var scope = _scopeProvider.CreateCoreScope())
         {
-            Alias = contentTypeAlias,
-            Name = "Product",
-        };
 
-        var contentTab = new PropertyGroup(new PropertyTypeCollection(true))
-        {
-            Name = "Content",
-            Alias = "content",
-            SortOrder = 1,
-            Type = PropertyGroupType.Tab
-        };
-        contentType.PropertyGroups.Add(contentTab);
+            var contentTypeBuilder = new DocumentTypeBuilder(_shortStringHelper)
+                .WithAlias(contentTypeAlias)
+                .WithName("Product")
+                .WithDescription("A product document type")
+                .WithIcon("icon-shopping-basket")
+                .AddTab("Content", tab => tab
+                    .WithAlias("content")
+                    .WithSortOrder(1)
+                    .AddTextBoxProperty("Title", "title", property => property
+                        .WithDescription("Page title")
+                        .IsMandatory()
+                        .WithValueStorageType(ValueStorageType.Nvarchar))
+                    .AddTextAreaProperty("Description", "description")
+                    .AddNumericProperty("Price", "price", property => property
+                        .IsMandatory())
+                    .AddMediaPickerProperty("Product Image", "productImage"));
 
-        var titlePropertyType = new PropertyType(_shortStringHelper, "Umbraco.TextBox", ValueStorageType.Nvarchar, "title")
-        {
-            Name = "Title",
-            Description = "Page title",
-            Mandatory = true,
-        };
-        contentTab.PropertyTypes?.Add(titlePropertyType);
+            var contentType = contentTypeBuilder.Build();
+            _contentTypeService.Save(contentType);
 
-
-        _contentTypeService.Save(contentType);
-
+            scope.Complete();
+        }
         return;
     }
 }
