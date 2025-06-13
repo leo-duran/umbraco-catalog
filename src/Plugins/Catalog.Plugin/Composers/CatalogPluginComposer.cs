@@ -5,13 +5,14 @@ using Umbraco.Cms.Core.Notifications;
 
 namespace Catalog.Plugin.Composers
 {
-    public class ProgrammaticDocumentTypeComposer : IComposer
+    public class CatalogPluginComposer : IComposer
     {
         public void Compose(IUmbracoBuilder builder)
         {
             // Register our notification handler
             builder
-                .AddNotificationHandler<UmbracoApplicationStartingNotification, ProgrammaticDocTypeHandler>();
+            // .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ContentTypeCreator>();
+            .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ProductDocTypeHandler>();
         }
     }
 }
