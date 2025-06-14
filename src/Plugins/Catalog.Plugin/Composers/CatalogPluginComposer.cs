@@ -9,13 +9,10 @@ namespace Catalog.Plugin.Composers
     {
         public void Compose(IUmbracoBuilder builder)
         {
-            // Register our notification handlers
-            // Make sure ProductDocTypeHandler runs first, then CatalogPageDocTypeHandler
-            // This is important because CatalogPageDocTypeHandler might have a dependency on the Product document type
-            builder
-                // .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ContentTypeCreator>();
-                .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ProductDocTypeHandler>()
-                .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, CatalogPageDocTypeHandler>();
+            // Register handlers in the correct order - CatalogPage first, then others that inherit from it
+            builder.AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, CatalogPageDocTypeHandler>();
+            builder.AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ProductDocTypeHandler>();
+            // builder.AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, AboutUsDocTypeHandler>();
         }
     }
 }
