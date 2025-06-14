@@ -272,7 +272,7 @@ export class CatalogDashboardElement extends UmbElementMixin(LitElement) {
                         Ping!
                     </uui-button>
                     <p>
-                        This endpoint has a forced delay to show the button 'waiting' state for a few seconds before completing the request.
+                        Let's play ping pong!
                     </p>
                 </uui-box>
 
