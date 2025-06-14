@@ -21,6 +21,63 @@ export type PingResponses = {
 };
 
 export type PingResponse = PingResponses[keyof PingResponses];
+
+export type ContentTypesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/umbraco/catalogplugin/api/v1/content-types';
+};
+
+export type ContentTypesErrors = {
+    /**
+     * The resource is protected and requires an authentication token
+     */
+    401: unknown;
+};
+
+export interface PropertyTypeDto {
+    id: number;
+    key: string;
+    alias: string;
+    name: string;
+    description: string;
+    mandatory: boolean;
+    dataTypeId: number;
+    dataTypeKey: string;
+    sortOrder: number;
+}
+
+export interface PropertyGroupDto {
+    id: number;
+    key: string;
+    name: string;
+    alias: string;
+    sortOrder: number;
+    propertyTypes: PropertyTypeDto[];
+}
+
+export interface ContentTypeDto {
+    id: number;
+    key: string;
+    alias: string;
+    name: string;
+    description: string;
+    icon: string;
+    isElement: boolean;
+    allowedAsRoot: boolean;
+    propertyGroups: PropertyGroupDto[];
+}
+
+export type ContentTypesResponses = {
+    /**
+     * OK
+     */
+    200: ContentTypeDto[];
+};
+
+export type ContentTypesResponse = ContentTypesResponses[keyof ContentTypesResponses];
+
 export type ClientOptions = {
     baseUrl: 'https://localhost:44389' | (string & {});
 };
