@@ -12,6 +12,8 @@ namespace Catalog.Plugin.Composers;
 public class CatalogPageDocTypeHandler : INotificationAsyncHandler<UmbracoApplicationStartingNotification>
 {
     const string contentTypeAlias = "catalogPage";
+    const string templateAlias = "catalogPageTemplate";
+    const string templateName = "Catalog Page Template";
     private readonly IShortStringHelper _shortStringHelper;
     private readonly IContentTypeService _contentTypeService;
     private readonly ICoreScopeProvider _scopeProvider;
@@ -57,34 +59,8 @@ public class CatalogPageDocTypeHandler : INotificationAsyncHandler<UmbracoApplic
 
                     // Create the document type with template support
                     _logger.LogInformation("Creating document type: {ContentTypeAlias}", contentTypeAlias);
-                    const string templateAlias = "catalogPageTemplate";
-                    const string templateName = "Catalog Page Template";
 
-                    // Get the template content
-                    string templateContent = GetDefaultTemplateContent();
-
-                    _logger.LogInformation("Creating document type with template: {TemplateAlias}", templateAlias);
-                    var contentTypeBuilder = new DocumentTypeBuilder(_shortStringHelper, _fileService)
-                        .WithAlias(contentTypeAlias)
-                        .WithName("Catalog Page")
-                        .WithDescription("A page that displays a catalog of products")
-                        .WithIcon("icon-shopping-basket-alt")
-                        .AllowAtRoot(true)
-                        .WithTemplate(templateAlias, templateName, templateContent);
-
-                    // Build the content type
-                    _logger.LogInformation("Building content type");
-                    var contentType = contentTypeBuilder.Build();
-
-                    // Enable ModelsBuilder for this content type
-                    _logger.LogInformation("Enabling ModelsBuilder for content type");
-                    contentType.IsElement = false;
-                    contentType.AllowedAsRoot = true;
-
-                    // Save the document type
-                    _logger.LogInformation("Saving content type: {ContentTypeAlias}", contentTypeAlias);
-                    _contentTypeService.Save(contentType);
-                    _logger.LogInformation("Content type saved successfully: {ContentTypeAlias}", contentTypeAlias);
+                    CreateSimplePage(contentTypeAlias, "Catalog Page", "A page that displays a catalog of products", templateAlias, templateName);
 
                     _logger.LogInformation("Completing scope");
                     scope.Complete();
@@ -104,6 +80,42 @@ public class CatalogPageDocTypeHandler : INotificationAsyncHandler<UmbracoApplic
         }
 
         return;
+    }
+
+    private void CreateSimplePage(string pageAlias, string title, string description, string pageTemplateAlias, string pageTemplateName)
+    {
+        // Get the template content
+        string templateContent = GetDefaultTemplateContent();
+
+        _logger.LogInformation("Creating document type with template: {TemplateAlias}", pageTemplateAlias);
+        var contentTypeBuilder = new DocumentTypeBuilder(_shortStringHelper, _fileService)
+            .WithAlias(pageAlias)
+            .WithName(title)
+            .WithDescription(description)
+            .WithIcon("icon-shopping-basket-alt")
+            .AddTab("Content", tab => tab
+                .WithAlias("content")
+                .WithSortOrder(1)
+                .AddTextBoxProperty("Title", "title", property => property
+                    .WithDescription("Page title")
+                    .IsMandatory()
+                    .WithValueStorageType(ValueStorageType.Nvarchar)))
+            .AllowAtRoot(true)
+            .WithTemplate(pageTemplateAlias, pageTemplateName, templateContent);
+
+        // Build the content type
+        _logger.LogInformation("Building content type");
+        var contentType = contentTypeBuilder.Build();
+
+        // Enable ModelsBuilder for this content type
+        _logger.LogInformation("Enabling ModelsBuilder for content type");
+        contentType.IsElement = false;
+        contentType.AllowedAsRoot = true;
+
+        // Save the document type
+        _logger.LogInformation("Saving content type: {ContentTypeAlias}", pageAlias);
+        _contentTypeService.Save(contentType);
+        _logger.LogInformation("Content type saved successfully: {ContentTypeAlias}", pageAlias);
     }
 
     private string GetDefaultTemplateContent()
