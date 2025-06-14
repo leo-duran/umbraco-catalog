@@ -47,6 +47,8 @@ public class CatalogPageDocTypeHandler : INotificationAsyncHandler<UmbracoApplic
             {
                 try
                 {
+                    // CreateHomePageType();
+
                     // Check if content type already exists
                     _logger.LogInformation("Checking if content type already exists: {ContentTypeAlias}", contentTypeAlias);
                     var existingContentType = _contentTypeService.Get(contentTypeAlias);
@@ -80,6 +82,76 @@ public class CatalogPageDocTypeHandler : INotificationAsyncHandler<UmbracoApplic
         }
 
         return;
+    }
+
+    private void CreateHomePageType()
+    {
+        string homePageAlias = "homePage";
+        string homePageName = "Home Page";
+        string homePageDescription = "Home page for the catalog website";
+        string homePageTemplateAlias = "homePageTemplate";
+        string homePageTemplateName = "Home Page Template";
+
+        // check for existing home page
+        var existingHomePage = CheckForExistingContentType(homePageAlias);
+        if (existingHomePage != null)
+        {
+            _logger.LogInformation("{HomePageName} already exists: {HomePageAlias}", homePageName, homePageAlias);
+            return;
+        }
+
+        var homePageTemplateContent = GetHomePageTemplateContent();
+
+        var homePageBuilder = new DocumentTypeBuilder(_shortStringHelper, _fileService)
+            .WithAlias(homePageAlias)
+            .WithName(homePageName)
+            .WithDescription(homePageDescription)
+            .WithIcon("icon-home")
+            .AddTab("Content", tab => tab
+                .WithAlias("content")
+                .WithSortOrder(1)
+                .AddTextBoxProperty("Title", "title", property => property
+                    .WithDescription("Page title")
+                    .IsMandatory()
+                    .WithValueStorageType(ValueStorageType.Nvarchar)))
+            .AllowAtRoot(true)
+            .WithTemplate(homePageTemplateAlias, homePageTemplateName, homePageTemplateContent);
+
+
+        _logger.LogInformation("Building content type");
+        var contentType = homePageBuilder.Build();
+
+        // Enable ModelsBuilder for this content type
+        // _logger.LogInformation("Enabling ModelsBuilder for content type");
+        // contentType.IsElement = false;
+        // contentType.AllowedAsRoot = true;
+
+        // Save the document type
+        _logger.LogInformation("Saving content type: {ContentTypeAlias}", homePageAlias);
+        _contentTypeService.Save(contentType);
+        _logger.LogInformation("Content type saved successfully: {ContentTypeAlias}", homePageAlias);
+
+    }
+
+    private IContentType CheckForExistingContentType(string homePageAlias)
+    {
+        return _contentTypeService.Get(homePageAlias);
+    }
+
+    private string GetHomePageTemplateContent()
+    {
+        return @"@using Umbraco.Cms.Web.Common.PublishedModels;
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage<ContentModels.HomePage>
+@using ContentModels = Umbraco.Cms.Web.Common.PublishedModels;
+
+@{
+    Layout = ""_Layout.cshtml"";
+}
+
+<div class=""home-page"">
+    <h1>@Model.Title</h1>
+</div>
+";
     }
 
     private void CreateSimplePage(string pageAlias, string title, string description, string pageTemplateAlias, string pageTemplateName)
