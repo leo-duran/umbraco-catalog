@@ -2,7 +2,7 @@ using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
 
-namespace Umbraco.DocTypeBuilder;
+namespace CmsBuilder;
 
 /// <summary>
 /// Builder for creating Umbraco document types (ContentType) using a fluent API.

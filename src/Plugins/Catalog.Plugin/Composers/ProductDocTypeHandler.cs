@@ -5,7 +5,7 @@ using Umbraco.Cms.Core.Scoping;
 using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
-using Umbraco.DocTypeBuilder;
+using CmsBuilder;
 
 namespace Catalog.Plugin.Composers;
 

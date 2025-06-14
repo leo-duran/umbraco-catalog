@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Umbraco.DocTypeBuilder\Umbraco.DocTypeBuilder.csproj" />
+    <ProjectReference Include="..\..\CmsBuilder\CmsBuilder.csproj" />
   </ItemGroup>
 
   <ItemGroup>
