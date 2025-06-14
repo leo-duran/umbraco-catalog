@@ -40,6 +40,41 @@ export class CatalogDashboardElement extends UmbElementMixin(LitElement) {
         this.attachShadow({ mode: 'open' });
     }
     
+    connectedCallback() {
+        super.connectedCallback();
+        // Load content types when component is connected to the DOM
+        this.#loadContentTypes();
+    }
+    
+    #loadContentTypes = async () => {
+        this.isLoading = true;
+        
+        try {
+            const { data, error } = await CatalogPluginService.getContentTypes({
+                credentials: 'include',
+                mode: 'cors',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'Authorization': getBearerToken()
+                }
+            });
+            
+            if (error) {
+                console.error("Error fetching content types:", error);
+                return;
+            }
+            
+            if (data) {
+                this.contentTypes = data;
+            }
+        } catch (error) {
+            console.error("Error fetching content types:", error);
+        } finally {
+            this.isLoading = false;
+        }
+    };
+    
     #onClickWhatsMyName = async (ev: Event) => {
         const buttonElement = ev.target as UUIButtonElement;
         buttonElement.state = "waiting";
@@ -67,37 +102,10 @@ export class CatalogDashboardElement extends UmbElementMixin(LitElement) {
     #onClickGetContentTypes = async (ev: Event) => {
         const buttonElement = ev.target as UUIButtonElement;
         buttonElement.state = "waiting";
-        this.isLoading = true;
         
-        try {
-            const { data, error } = await CatalogPluginService.getContentTypes({
-                credentials: 'include',
-                mode: 'cors',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json',
-                    'Authorization': getBearerToken()
-                }
-            });
-            
-            if (error) {
-                console.error("Error fetching content types:", error);
-                buttonElement.state = "failed";
-                return;
-            }
-            
-            if (data) {
-                this.contentTypes = data;
-                buttonElement.state = "success";
-            } else {
-                buttonElement.state = "failed";
-            }
-        } catch (error) {
-            console.error("Error fetching content types:", error);
-            buttonElement.state = "failed";
-        } finally {
-            this.isLoading = false;
-        }
+        await this.#loadContentTypes();
+        
+        buttonElement.state = "success";
     };
 
     #onViewContentTypeDetails = async (alias: string) => {
@@ -287,7 +295,7 @@ export class CatalogDashboardElement extends UmbElementMixin(LitElement) {
                               look="primary"
                               @click="${this.#onClickGetContentTypes}"
                             >
-                                Get Content Types
+                                Refresh
                             </uui-button>
                             
                             ${this.isLoading 
