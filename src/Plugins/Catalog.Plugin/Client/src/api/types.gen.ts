@@ -78,6 +78,75 @@ export type ContentTypesResponses = {
 
 export type ContentTypesResponse = ContentTypesResponses[keyof ContentTypesResponses];
 
+export interface DataTypeDto {
+    id: number;
+    key: string;
+    name: string;
+    editorAlias: string;
+    databaseType: string;
+}
+
+export interface PropertyTypeDetailDto extends PropertyTypeDto {
+    validationRegExp: string;
+    dataType: DataTypeDto;
+}
+
+export interface PropertyGroupDetailDto extends PropertyGroupDto {
+    propertyTypes: PropertyTypeDetailDto[];
+}
+
+export interface ContentTypeReferenceDto {
+    id: number;
+    key: string;
+    alias: string;
+    name: string;
+    icon: string;
+}
+
+export interface AllowedContentTypeDto {
+    id: number;
+    alias: string;
+    sortOrder: number;
+}
+
+export interface ContentTypeDetailDto extends ContentTypeDto {
+    compositions: ContentTypeReferenceDto[];
+    allowedContentTypes: AllowedContentTypeDto[];
+    createDate: string;
+    updateDate: string;
+    defaultTemplate: string;
+    propertyGroups: PropertyGroupDetailDto[];
+}
+
+export type ContentTypeDetailData = {
+    body?: never;
+    path: {
+        alias: string;
+    };
+    query?: never;
+    url: '/umbraco/catalogplugin/api/v1/content-types/{alias}';
+};
+
+export type ContentTypeDetailErrors = {
+    /**
+     * The resource is protected and requires an authentication token
+     */
+    401: unknown;
+    /**
+     * Content type not found
+     */
+    404: unknown;
+};
+
+export type ContentTypeDetailResponses = {
+    /**
+     * OK
+     */
+    200: ContentTypeDetailDto;
+};
+
+export type ContentTypeDetailResponse = ContentTypeDetailResponses[keyof ContentTypeDetailResponses];
+
 export type ClientOptions = {
     baseUrl: 'https://localhost:44389' | (string & {});
 };
