@@ -28,7 +28,7 @@ check_site() {
 
 # Wait for the site to start up by checking if it's responding
 echo "Waiting for the site to start up on https://localhost:44389..."
-MAX_ATTEMPTS=60  # Maximum number of attempts (60 seconds)
+MAX_ATTEMPTS=20  # Maximum number of attempts (20 seconds)
 ATTEMPTS=0
 
 while ! check_site; do

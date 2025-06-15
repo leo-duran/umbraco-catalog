@@ -9,7 +9,8 @@ namespace Catalog.Plugin.Composers
     {
         public void Compose(IUmbracoBuilder builder)
         {
-            // Register handlers in the correct order - CatalogPage first, then others that inherit from it
+            // Register handlers in the correct order - compositions first, then document types
+            builder.AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ContentSettingsCompositionHandler>();
             builder.AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, CatalogPageDocTypeHandler>();
             builder.AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ProductDocTypeHandler>();
             // builder.AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, AboutUsDocTypeHandler>();

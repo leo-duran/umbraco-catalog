@@ -13,6 +13,8 @@ public class CatalogComposer : IComposer
     {
         // Register our notification handlers
         builder
+            // Register ContentSettingsCompositionHandler first since it's a composition
+            .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ContentSettingsCompositionHandler>()
             .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ProductDocTypeHandler>()
             .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, CatalogPageDocTypeHandler>()
             .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, CatalogContentHandler>();
