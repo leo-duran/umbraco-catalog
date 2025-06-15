@@ -5,15 +5,23 @@ using Umbraco.Cms.Core.Notifications;
 
 namespace Catalog.Plugin.Composers
 {
+    /// <summary>
+    /// Composer that registers all the components for the Catalog plugin.
+    /// </summary>
     public class CatalogPluginComposer : IComposer
     {
         public void Compose(IUmbracoBuilder builder)
         {
-            // Register handlers in the correct order - compositions first, then document types
-            builder.AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ContentSettingsCompositionHandler>();
-            builder.AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, CatalogPageDocTypeHandler>();
-            builder.AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ProductDocTypeHandler>();
-            // builder.AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, AboutUsDocTypeHandler>();
+            // Register our notification handlers in the correct order
+            builder
+                // Register ContentSettingsCompositionHandler first since it's a composition
+                .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ContentSettingsCompositionHandler>()
+                // ContentFolderHandler is no longer needed as folder creation is now handled by ContentBuilder
+                .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ProductDocTypeHandler>()
+                .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, CatalogPageDocTypeHandler>()
+                .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, CatalogContentHandler>();
+            // Uncomment when AboutUsDocTypeHandler is implemented
+            // .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, AboutUsDocTypeHandler>();
         }
     }
 }

@@ -5,6 +5,7 @@ using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Persistence.Querying;
 using Umbraco.Cms.Core.Scoping;
 using Umbraco.Cms.Core.Services;
+using Umbraco.Cms.Core.Strings;
 
 namespace Catalog.Plugin.Composers;
 
@@ -15,25 +16,32 @@ public class CatalogContentHandler : INotificationAsyncHandler<UmbracoApplicatio
 {
     private const string CatalogPageAlias = "catalogPage";
     private const string CatalogPageName = "Catalog";
+    private const string AllCatalogsFolder = "All Catalogs";
+    private const string ArticlesFolder = "Articles";
+    private const string PagesFolder = "Pages";
+    private const string NewsFolder = "News";
 
     private readonly IContentService _contentService;
     private readonly ICoreScopeProvider _scopeProvider;
     private readonly ILogger<CatalogContentHandler> _logger;
     private readonly IContentTypeService _contentTypeService;
     private readonly ILoggerFactory _loggerFactory;
+    private readonly IShortStringHelper _shortStringHelper;
 
     public CatalogContentHandler(
         IContentService contentService,
         ICoreScopeProvider scopeProvider,
         ILogger<CatalogContentHandler> logger,
         IContentTypeService contentTypeService,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory,
+        IShortStringHelper shortStringHelper)
     {
         _contentService = contentService;
         _scopeProvider = scopeProvider;
         _logger = logger;
         _contentTypeService = contentTypeService;
         _loggerFactory = loggerFactory;
+        _shortStringHelper = shortStringHelper;
     }
 
     public async Task HandleAsync(UmbracoApplicationStartingNotification notification, CancellationToken cancellationToken)
@@ -55,29 +63,59 @@ public class CatalogContentHandler : INotificationAsyncHandler<UmbracoApplicatio
                         return;
                     }
 
-                    // Get the content type ID
-                    int contentTypeId = catalogPageContentType.Id;
+                    // Create folder structure
+                    var mainFolder = ContentBuilder.GetOrCreateFolder(
+                        _contentService,
+                        _contentTypeService,
+                        _shortStringHelper,
+                        AllCatalogsFolder,
+                        -1, // Root level
+                        _logger);
 
-                    // Check if catalog page content already exists
-                    // Use GetRootContent instead of GetPagedOfType to avoid filter parameter issues
-                    var rootContent = _contentService.GetRootContent();
-                    var existingContent = rootContent.FirstOrDefault(c => c.ContentType.Id == contentTypeId);
+                    // Create subfolders
+                    var articlesFolder = ContentBuilder.GetOrCreateFolder(
+                        _contentService,
+                        _contentTypeService,
+                        _shortStringHelper,
+                        ArticlesFolder,
+                        mainFolder.Id,
+                        _logger);
+
+                    var pagesFolder = ContentBuilder.GetOrCreateFolder(
+                        _contentService,
+                        _contentTypeService,
+                        _shortStringHelper,
+                        PagesFolder,
+                        mainFolder.Id,
+                        _logger);
+
+                    var newsFolder = ContentBuilder.GetOrCreateFolder(
+                        _contentService,
+                        _contentTypeService,
+                        _shortStringHelper,
+                        NewsFolder,
+                        mainFolder.Id,
+                        _logger);
+
+                    // Check if catalog page content already exists in the Pages folder
+                    var pagesChildren = _contentService.GetPagedChildren(pagesFolder.Id, 0, 1000, out _);
+                    var existingContent = pagesChildren.FirstOrDefault(c => c.ContentType.Alias == CatalogPageAlias);
 
                     if (existingContent != null)
                     {
-                        _logger.LogInformation("Catalog Page content already exists. Skipping content creation.");
+                        _logger.LogInformation("Catalog Page content already exists in Pages folder. Skipping content creation.");
                         scope.Complete();
                         return;
                     }
 
-                    // Create the catalog page content
-                    _logger.LogInformation("Creating Catalog Page content");
+                    // Create the catalog page content in the Pages folder
+                    _logger.LogInformation("Creating Catalog Page content in Pages folder");
 
                     var contentBuilder = new ContentBuilder(
                         _contentService,
                         CatalogPageAlias,
                         CatalogPageName,
-                        -1, // Create at root level
+                        pagesFolder.Id, // Create in Pages folder
                         _loggerFactory.CreateLogger<ContentBuilder>());
 
                     // Set properties
