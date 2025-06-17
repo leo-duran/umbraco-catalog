@@ -20,7 +20,7 @@ namespace Catalog.Models
 {
 	/// <summary>Product</summary>
 	[PublishedModel("product")]
-	public partial class Product : PublishedContentModel, IContentSettings, IFooterProperties
+	public partial class Product : PublishedContentModel, IContentProperties, IFooterProperties
 	{
 		// helpers
 #pragma warning disable 0109 // new is redundant
@@ -78,7 +78,7 @@ namespace Catalog.Models
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
 		[ImplementPropertyType("mainContent")]
-		public virtual string MainContent => global::Catalog.Models.ContentSettings.GetMainContent(this, _publishedValueFallback);
+		public virtual string MainContent => global::Catalog.Models.ContentProperties.GetMainContent(this, _publishedValueFallback);
 
 		///<summary>
 		/// Footer Content: Footer Content

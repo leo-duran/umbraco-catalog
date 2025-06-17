@@ -18,9 +18,9 @@ using Umbraco.Extensions;
 
 namespace Catalog.Models
 {
-	// Mixin Content Type with alias "contentSettings"
-	/// <summary>Content Settings</summary>
-	public partial interface IContentSettings : IPublishedElement
+	// Mixin Content Type with alias "contentProperties"
+	/// <summary>Content Properties</summary>
+	public partial interface IContentProperties : IPublishedElement
 	{
 		/// <summary>Main Content</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
@@ -28,14 +28,14 @@ namespace Catalog.Models
 		string MainContent { get; }
 	}
 
-	/// <summary>Content Settings</summary>
-	[PublishedModel("contentSettings")]
-	public partial class ContentSettings : PublishedElementModel, IContentSettings
+	/// <summary>Content Properties</summary>
+	[PublishedModel("contentProperties")]
+	public partial class ContentProperties : PublishedElementModel, IContentProperties
 	{
 		// helpers
 #pragma warning disable 0109 // new is redundant
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
-		public new const string ModelTypeAlias = "contentSettings";
+		public new const string ModelTypeAlias = "contentProperties";
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
 		public new const PublishedItemType ModelItemType = PublishedItemType.Content;
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
@@ -44,14 +44,14 @@ namespace Catalog.Models
 			=> PublishedModelUtility.GetModelContentType(contentTypeCache, ModelItemType, ModelTypeAlias);
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
 		[return: global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		public static IPublishedPropertyType GetModelPropertyType<TValue>(IPublishedContentTypeCache contentTypeCache, Expression<Func<ContentSettings, TValue>> selector)
+		public static IPublishedPropertyType GetModelPropertyType<TValue>(IPublishedContentTypeCache contentTypeCache, Expression<Func<ContentProperties, TValue>> selector)
 			=> PublishedModelUtility.GetModelPropertyType(GetModelContentType(contentTypeCache), selector);
 #pragma warning restore 0109
 
 		private IPublishedValueFallback _publishedValueFallback;
 
 		// ctor
-		public ContentSettings(IPublishedElement content, IPublishedValueFallback publishedValueFallback)
+		public ContentProperties(IPublishedElement content, IPublishedValueFallback publishedValueFallback)
 			: base(content, publishedValueFallback)
 		{
 			_publishedValueFallback = publishedValueFallback;
@@ -70,6 +70,6 @@ namespace Catalog.Models
 		/// <summary>Static getter for Main Content</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
 		[return: global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		public static string GetMainContent(IContentSettings that, IPublishedValueFallback publishedValueFallback) => that.Value<string>(publishedValueFallback, "mainContent");
+		public static string GetMainContent(IContentProperties that, IPublishedValueFallback publishedValueFallback) => that.Value<string>(publishedValueFallback, "mainContent");
 	}
 }

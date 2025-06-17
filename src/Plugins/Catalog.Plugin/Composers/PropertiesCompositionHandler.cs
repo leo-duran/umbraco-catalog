@@ -10,23 +10,23 @@ using CmsBuilder;
 namespace Catalog.Plugin.Composers;
 
 /// <summary>
-/// Handler that creates a ContentSettings composition document type.
+/// Handler that creates a ContentProperties composition document type.
 /// This is a composition that can be used by other document types to include content properties.
 /// </summary>
-public class ContentSettingsCompositionHandler : INotificationAsyncHandler<UmbracoApplicationStartingNotification>
+public class PropertiesCompositionHandler : INotificationAsyncHandler<UmbracoApplicationStartingNotification>
 {
-    const string contentTypeAlias = "contentSettings";
+    const string contentTypeAlias = "contentProperties";
     const string compositionsFolderName = "Compositions";
     private readonly IShortStringHelper _shortStringHelper;
     private readonly IContentTypeService _contentTypeService;
     private readonly ICoreScopeProvider _scopeProvider;
-    private readonly ILogger<ContentSettingsCompositionHandler> _logger;
+    private readonly ILogger<PropertiesCompositionHandler> _logger;
 
-    public ContentSettingsCompositionHandler(
+    public PropertiesCompositionHandler(
         IShortStringHelper shortStringHelper,
         IContentTypeService contentTypeService,
         ICoreScopeProvider scopeProvider,
-        ILogger<ContentSettingsCompositionHandler> logger)
+        ILogger<PropertiesCompositionHandler> logger)
     {
         _shortStringHelper = shortStringHelper;
         _contentTypeService = contentTypeService;
@@ -37,7 +37,7 @@ public class ContentSettingsCompositionHandler : INotificationAsyncHandler<Umbra
     public async Task HandleAsync(UmbracoApplicationStartingNotification notification, CancellationToken cancellationToken)
     {
 
-        _logger.LogInformation("Starting ContentSettingsCompositionHandler.HandleAsync");
+        _logger.LogInformation("Starting PropertiesCompositionHandler.HandleAsync");
 
         using (var scope = _scopeProvider.CreateCoreScope())
         {
@@ -45,7 +45,7 @@ public class ContentSettingsCompositionHandler : INotificationAsyncHandler<Umbra
             {
                 var folderId = GetOrCreateCompositionsFolder();
 
-                CreateContentSettingsComposition(folderId);
+                CreateContentPropertiesComposition(folderId);
                 CreateFooterPropertiesComposition(folderId);
 
                 _logger.LogInformation("Completing scope");
@@ -54,22 +54,22 @@ public class ContentSettingsCompositionHandler : INotificationAsyncHandler<Umbra
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in ContentSettingsCompositionHandler scope: {Message}", ex.Message);
+                _logger.LogError(ex, "Error in PropertiesCompositionHandler scope: {Message}", ex.Message);
                 throw;
             }
         }
     }
 
-    private void CreateContentSettingsComposition(int folderId)
+    private void CreateContentPropertiesComposition(int folderId)
     {
-        _logger.LogInformation("Creating ContentSettings composition");
+        _logger.LogInformation("Creating ContentProperties composition");
 
         // Create and build the document type - Build() now handles duplicate checking and persistence
         var contentType = new DocumentTypeBuilder(_shortStringHelper, _contentTypeService)
             .WithAlias(contentTypeAlias)
-            .WithName("Content Settings")
+            .WithName("Content Properties")
             .WithDescription("A composition that contains content properties")
-            .WithIcon("icon-settings")
+            .WithIcon("icon-plugin")
             .IsElement(true)  // Set as composition using the builder method
             .WithParentFolder(folderId > 0 ? folderId : -1)  // Use the new method
             .AddTab("Content", tab => tab
@@ -89,7 +89,7 @@ public class ContentSettingsCompositionHandler : INotificationAsyncHandler<Umbra
             .WithAlias("footerProperties")
             .WithName("Footer Properties")
             .WithDescription("A composition that contains footer properties")
-            .WithIcon("icon-settings")
+            .WithIcon("icon-plugin")
             .IsElement(true)  // Set as composition using the builder method
             .WithParentFolder(folderId > 0 ? folderId : -1)  // Use the new method
             .AddTab("Content", tab => tab
