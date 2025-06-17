@@ -85,6 +85,10 @@ public class ContentSettingsCompositionHandler : INotificationAsyncHandler<Umbra
             .AddTab("Content", tab => tab
                 .WithAlias("content")
                 .WithSortOrder(1)
+                .AddTextBoxProperty("Title", "title", property => property
+                    .WithDescription("Page title")
+                    .IsMandatory()
+                    .WithValueStorageType(ValueStorageType.Nvarchar))
                 .AddTextAreaProperty("Content", "content", property => property
                     .WithDescription("Main content")
                     .WithValueStorageType(ValueStorageType.Nvarchar)));

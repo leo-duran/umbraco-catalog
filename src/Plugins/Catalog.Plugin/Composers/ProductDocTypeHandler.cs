@@ -12,6 +12,7 @@ namespace Catalog.Plugin.Composers;
 public class ProductDocTypeHandler : INotificationAsyncHandler<UmbracoApplicationStartingNotification>
 {
     const string contentTypeAlias = "product";
+    const string contentSettingsAlias = "contentSettings";
     private readonly IShortStringHelper _shortStringHelper;
     private readonly IContentTypeService _contentTypeService;
     private readonly ICoreScopeProvider _scopeProvider;
@@ -45,8 +46,31 @@ public class ProductDocTypeHandler : INotificationAsyncHandler<UmbracoApplicatio
                     if (existingContentType != null)
                     {
                         _logger.LogInformation("Content type already exists: {ContentTypeAlias}, ID: {ContentTypeId}", contentTypeAlias, existingContentType.Id);
-                        scope.Complete();
-                        return;
+
+                        // Check if it already has the composition
+                        var hasComposition = existingContentType.ContentTypeComposition.Any(c => c.Alias == contentSettingsAlias);
+                        if (hasComposition)
+                        {
+                            _logger.LogInformation("Content type already has ContentSettings composition");
+                            scope.Complete();
+                            return;
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Adding ContentSettings composition to existing Product document type");
+                            AddCompositionToExistingContentType(existingContentType);
+                            scope.Complete();
+                            return;
+                        }
+                    }
+
+                    // Get the ContentSettings composition
+                    _logger.LogInformation("Getting ContentSettings composition: {CompositionAlias}", contentSettingsAlias);
+                    var contentSettingsComposition = _contentTypeService.Get(contentSettingsAlias);
+                    if (contentSettingsComposition == null)
+                    {
+                        _logger.LogError("ContentSettings composition not found. Make sure ContentSettingsCompositionHandler runs first.");
+                        throw new InvalidOperationException($"ContentSettings composition '{contentSettingsAlias}' not found. Ensure ContentSettingsCompositionHandler runs first.");
                     }
 
                     _logger.LogInformation("Creating document type: {ContentTypeAlias}", contentTypeAlias);
@@ -55,13 +79,10 @@ public class ProductDocTypeHandler : INotificationAsyncHandler<UmbracoApplicatio
                         .WithName("Product")
                         .WithDescription("A product document type")
                         .WithIcon("icon-shopping-basket")
-                        .AddTab("Content", tab => tab
-                            .WithAlias("content")
-                            .WithSortOrder(1)
-                            .AddTextBoxProperty("Title", "title", property => property
-                                .WithDescription("Page title")
-                                .IsMandatory()
-                                .WithValueStorageType(ValueStorageType.Nvarchar))
+                        .AddComposition(contentSettingsComposition)  // Add the composition first
+                        .AddTab("Product Info", tab => tab
+                            .WithAlias("productInfo")
+                            .WithSortOrder(2)  // Set higher sort order so it appears after the Content tab from composition
                             .AddTextAreaProperty("Description", "description")
                             .AddNumericProperty("Price", "price", property => property
                                 .IsMandatory())
@@ -96,5 +117,31 @@ public class ProductDocTypeHandler : INotificationAsyncHandler<UmbracoApplicatio
         }
 
         return;
+    }
+
+    private void AddCompositionToExistingContentType(IContentType existingContentType)
+    {
+        try
+        {
+            // Get the ContentSettings composition
+            var contentSettingsComposition = _contentTypeService.Get(contentSettingsAlias);
+            if (contentSettingsComposition == null)
+            {
+                _logger.LogError("ContentSettings composition not found when trying to add to existing content type");
+                return;
+            }
+
+            // Add the composition
+            existingContentType.AddContentType(contentSettingsComposition);
+
+            // Save the updated content type
+            _contentTypeService.Save(existingContentType);
+            _logger.LogInformation("Successfully added ContentSettings composition to existing Product document type");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding composition to existing content type: {Message}", ex.Message);
+            throw;
+        }
     }
 }

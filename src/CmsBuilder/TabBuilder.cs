@@ -48,6 +48,11 @@ public class TabBuilder
         return this;
     }
 
+    public TabBuilder AddDocumentTypeProperty(string name, string alias, Action<PropertyBuilder> configureProperty)
+    {
+        return AddProperty(name, alias, "Umbraco.DocumentType", configureProperty);
+    }
+
     /// <summary>
     /// Adds a property to the tab.
     /// </summary>

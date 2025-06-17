@@ -18,29 +18,14 @@ using Umbraco.Extensions;
 
 namespace Catalog.Models
 {
-	// Mixin Content Type with alias "contentSettings"
-	/// <summary>Content Settings</summary>
-	public partial interface IContentSettings : IPublishedElement
-	{
-		/// <summary>Content</summary>
-		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
-		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		string Content { get; }
-
-		/// <summary>Title</summary>
-		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
-		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		string Title { get; }
-	}
-
-	/// <summary>Content Settings</summary>
-	[PublishedModel("contentSettings")]
-	public partial class ContentSettings : PublishedElementModel, IContentSettings
+	/// <summary>Product</summary>
+	[PublishedModel("product")]
+	public partial class Product : PublishedContentModel, IContentSettings
 	{
 		// helpers
 #pragma warning disable 0109 // new is redundant
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
-		public new const string ModelTypeAlias = "contentSettings";
+		public new const string ModelTypeAlias = "product";
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
 		public new const PublishedItemType ModelItemType = PublishedItemType.Content;
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
@@ -49,14 +34,14 @@ namespace Catalog.Models
 			=> PublishedModelUtility.GetModelContentType(contentTypeCache, ModelItemType, ModelTypeAlias);
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
 		[return: global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		public static IPublishedPropertyType GetModelPropertyType<TValue>(IPublishedContentTypeCache contentTypeCache, Expression<Func<ContentSettings, TValue>> selector)
+		public static IPublishedPropertyType GetModelPropertyType<TValue>(IPublishedContentTypeCache contentTypeCache, Expression<Func<Product, TValue>> selector)
 			=> PublishedModelUtility.GetModelPropertyType(GetModelContentType(contentTypeCache), selector);
 #pragma warning restore 0109
 
 		private IPublishedValueFallback _publishedValueFallback;
 
 		// ctor
-		public ContentSettings(IPublishedElement content, IPublishedValueFallback publishedValueFallback)
+		public Product(IPublishedContent content, IPublishedValueFallback publishedValueFallback)
 			: base(content, publishedValueFallback)
 		{
 			_publishedValueFallback = publishedValueFallback;
@@ -65,17 +50,35 @@ namespace Catalog.Models
 		// properties
 
 		///<summary>
+		/// Description
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("description")]
+		public virtual string Description => this.Value<string>(_publishedValueFallback, "description");
+
+		///<summary>
+		/// Price
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
+		[ImplementPropertyType("price")]
+		public virtual int Price => this.Value<int>(_publishedValueFallback, "price");
+
+		///<summary>
+		/// Product Image
+		///</summary>
+		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
+		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
+		[ImplementPropertyType("productImage")]
+		public virtual global::Umbraco.Cms.Core.Models.MediaWithCrops ProductImage => this.Value<global::Umbraco.Cms.Core.Models.MediaWithCrops>(_publishedValueFallback, "productImage");
+
+		///<summary>
 		/// Content: Main content
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
 		[ImplementPropertyType("content")]
-		public virtual string Content => GetContent(this, _publishedValueFallback);
-
-		/// <summary>Static getter for Content</summary>
-		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
-		[return: global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		public static string GetContent(IContentSettings that, IPublishedValueFallback publishedValueFallback) => that.Value<string>(publishedValueFallback, "content");
+		public virtual string Content => global::Catalog.Models.ContentSettings.GetContent(this, _publishedValueFallback);
 
 		///<summary>
 		/// Title: Page title
@@ -83,11 +86,6 @@ namespace Catalog.Models
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
 		[ImplementPropertyType("title")]
-		public virtual string Title => GetTitle(this, _publishedValueFallback);
-
-		/// <summary>Static getter for Title</summary>
-		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
-		[return: global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		public static string GetTitle(IContentSettings that, IPublishedValueFallback publishedValueFallback) => that.Value<string>(publishedValueFallback, "title");
+		public virtual string Title => global::Catalog.Models.ContentSettings.GetTitle(this, _publishedValueFallback);
 	}
 }
