@@ -15,11 +15,11 @@ namespace Catalog.Plugin.Composers
             // Register our notification handlers in the correct order
             builder
                 // Register ContentSettingsCompositionHandler first since it's a composition
-                .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ContentSettingsCompositionHandler>()
-                // ContentFolderHandler is no longer needed as folder creation is now handled by ContentBuilder
-                .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ProductDocTypeHandler>()
-                .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, CatalogPageDocTypeHandler>()
-                .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, CatalogContentHandler>();
+                .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ContentSettingsCompositionHandler>();
+            // // ContentFolderHandler is no longer needed as folder creation is now handled by ContentBuilder
+            // .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, ProductDocTypeHandler>()
+            // .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, CatalogPageDocTypeHandler>()
+            // .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, CatalogContentHandler>();
             // Uncomment when AboutUsDocTypeHandler is implemented
             // .AddNotificationAsyncHandler<UmbracoApplicationStartingNotification, AboutUsDocTypeHandler>();
         }

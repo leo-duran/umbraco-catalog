@@ -6,7 +6,6 @@ using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
 using CmsBuilder;
-using Umbraco.Cms.Core;
 
 namespace Catalog.Plugin.Composers;
 
@@ -18,7 +17,6 @@ public class ContentSettingsCompositionHandler : INotificationAsyncHandler<Umbra
 {
     const string contentTypeAlias = "contentSettings";
     const string compositionsFolderName = "Compositions";
-
     private readonly IShortStringHelper _shortStringHelper;
     private readonly IContentTypeService _contentTypeService;
     private readonly ICoreScopeProvider _scopeProvider;
@@ -38,50 +36,41 @@ public class ContentSettingsCompositionHandler : INotificationAsyncHandler<Umbra
 
     public async Task HandleAsync(UmbracoApplicationStartingNotification notification, CancellationToken cancellationToken)
     {
-        try
+
+        _logger.LogInformation("Starting ContentSettingsCompositionHandler.HandleAsync");
+
+        using (var scope = _scopeProvider.CreateCoreScope())
         {
-            _logger.LogInformation("Starting ContentSettingsCompositionHandler.HandleAsync");
-
-            using (var scope = _scopeProvider.CreateCoreScope())
+            try
             {
-                try
-                {
-                    // Check if content type already exists
-                    _logger.LogInformation("Checking if content type already exists: {ContentTypeAlias}", contentTypeAlias);
-                    var existingContentType = _contentTypeService.Get(contentTypeAlias);
-                    if (existingContentType != null)
-                    {
-                        _logger.LogInformation("Content type already exists: {ContentTypeAlias}, ID: {ContentTypeId}", contentTypeAlias, existingContentType.Id);
-                        scope.Complete();
-                        return;
-                    }
+                CreateContentSettingsComposition(scope);
 
-                    // Create the composition document type
-                    _logger.LogInformation("Creating composition document type: {ContentTypeAlias}", contentTypeAlias);
-                    CreateContentSettingsComposition();
-
-                    _logger.LogInformation("Completing scope");
-                    scope.Complete();
-                    _logger.LogInformation("Scope completed successfully");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error in ContentSettingsCompositionHandler scope: {Message}", ex.Message);
-                    throw;
-                }
+                _logger.LogInformation("Completing scope");
+                scope.Complete();
+                _logger.LogInformation("Scope completed successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ContentSettingsCompositionHandler scope: {Message}", ex.Message);
+                throw;
             }
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error in ContentSettingsCompositionHandler.HandleAsync: {Message}", ex.Message);
-            throw;
-        }
-
-        return;
     }
 
-    private void CreateContentSettingsComposition()
+    private void CreateContentSettingsComposition(ICoreScope scope)
     {
+        // Check if content type already exists
+        _logger.LogInformation("Checking if content type already exists: {ContentTypeAlias}", contentTypeAlias);
+        var existingContentType = _contentTypeService.Get(contentTypeAlias);
+        if (existingContentType != null)
+        {
+            _logger.LogInformation("Content type already exists: {ContentTypeAlias}, ID: {ContentTypeId}", contentTypeAlias, existingContentType.Id);
+            scope.Complete();
+            return;
+        }
+
+        // Create the composition document type
+        _logger.LogInformation("Creating composition document type: {ContentTypeAlias}", contentTypeAlias);
         _logger.LogInformation("Creating ContentSettings composition");
 
         // First create or get the Compositions folder
@@ -92,7 +81,7 @@ public class ContentSettingsCompositionHandler : INotificationAsyncHandler<Umbra
             .WithAlias(contentTypeAlias)
             .WithName("Content Settings")
             .WithDescription("A composition that contains content properties")
-            .WithIcon("icon-document")
+            .WithIcon("icon-settings")
             .AddTab("Content", tab => tab
                 .WithAlias("content")
                 .WithSortOrder(1)

@@ -35,8 +35,7 @@ while ! check_site; do
   ATTEMPTS=$((ATTEMPTS+1))
   if [ $ATTEMPTS -ge $MAX_ATTEMPTS ]; then
     echo "Site did not start after $MAX_ATTEMPTS seconds. Please check for errors."
-    # Kill the dotnet process if it's still running
-    kill $APP_PID 2>/dev/null
+
     exit 1
   fi
   echo "Waiting for site to respond... ($ATTEMPTS/$MAX_ATTEMPTS)"
