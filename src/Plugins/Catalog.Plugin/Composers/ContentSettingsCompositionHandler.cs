@@ -43,7 +43,10 @@ public class ContentSettingsCompositionHandler : INotificationAsyncHandler<Umbra
         {
             try
             {
-                CreateContentSettingsComposition(scope);
+                var folderId = GetOrCreateCompositionsFolder();
+
+                CreateContentSettingsComposition(folderId);
+                CreateFooterPropertiesComposition(folderId);
 
                 _logger.LogInformation("Completing scope");
                 scope.Complete();
@@ -57,62 +60,45 @@ public class ContentSettingsCompositionHandler : INotificationAsyncHandler<Umbra
         }
     }
 
-    private void CreateContentSettingsComposition(ICoreScope scope)
+    private void CreateContentSettingsComposition(int folderId)
     {
-        // Check if content type already exists
-        _logger.LogInformation("Checking if content type already exists: {ContentTypeAlias}", contentTypeAlias);
-        var existingContentType = _contentTypeService.Get(contentTypeAlias);
-        if (existingContentType != null)
-        {
-            _logger.LogInformation("Content type already exists: {ContentTypeAlias}, ID: {ContentTypeId}", contentTypeAlias, existingContentType.Id);
-            scope.Complete();
-            return;
-        }
-
-        // Create the composition document type
-        _logger.LogInformation("Creating composition document type: {ContentTypeAlias}", contentTypeAlias);
         _logger.LogInformation("Creating ContentSettings composition");
 
-        // First create or get the Compositions folder
-        var folderId = GetOrCreateCompositionsFolder();
-
-        // Create the document type builder
-        var contentTypeBuilder = new DocumentTypeBuilder(_shortStringHelper)
+        // Create and build the document type - Build() now handles duplicate checking and persistence
+        var contentType = new DocumentTypeBuilder(_shortStringHelper, _contentTypeService)
             .WithAlias(contentTypeAlias)
             .WithName("Content Settings")
             .WithDescription("A composition that contains content properties")
             .WithIcon("icon-settings")
+            .IsElement(true)  // Set as composition using the builder method
+            .WithParentFolder(folderId > 0 ? folderId : -1)  // Use the new method
             .AddTab("Content", tab => tab
                 .WithAlias("content")
                 .WithSortOrder(1)
-                .AddTextBoxProperty("Title", "title", property => property
-                    .WithDescription("Page title")
-                    .IsMandatory()
-                    .WithValueStorageType(ValueStorageType.Nvarchar))
-                .AddTextAreaProperty("Content", "content", property => property
-                    .WithDescription("Main content")
-                    .WithValueStorageType(ValueStorageType.Nvarchar)));
+                .AddTextAreaProperty("Main Content", "mainContent",
+                    description: "Main content"))
+            .Build();  // This now handles duplicate checking and saves to the database
 
-        // Build the content type
-        _logger.LogInformation("Building composition content type");
-        var contentType = contentTypeBuilder.Build();
-
-        // Set as composition
-        contentType.IsElement = true;
-
-        // Set the parent folder for the document type if we have a folder ID
-        if (folderId > 0)
-        {
-            _logger.LogInformation("Setting parent folder ID: {FolderId} for content type", folderId);
-            contentType.ParentId = folderId;
-        }
-
-        // Save the document type
-        _logger.LogInformation("Saving composition content type: {ContentTypeAlias}", contentTypeAlias);
-        _contentTypeService.Save(contentType);
-        _logger.LogInformation("Composition content type saved successfully: {ContentTypeAlias}", contentTypeAlias);
+        _logger.LogInformation("Composition content type created and saved successfully: {ContentTypeAlias}", contentTypeAlias);
     }
 
+    private void CreateFooterPropertiesComposition(int folderId)
+    {
+        // Create and build the document type - Build() now handles duplicate checking and persistence
+        var contentType = new DocumentTypeBuilder(_shortStringHelper, _contentTypeService)
+            .WithAlias("footerProperties")
+            .WithName("Footer Properties")
+            .WithDescription("A composition that contains footer properties")
+            .WithIcon("icon-settings")
+            .IsElement(true)  // Set as composition using the builder method
+            .WithParentFolder(folderId > 0 ? folderId : -1)  // Use the new method
+            .AddTab("Content", tab => tab
+                .WithAlias("content")
+                .WithSortOrder(1)
+                .AddTextAreaProperty("Footer Content", "footerContent",
+                    description: "Footer Content"))
+            .Build();  // This now handles duplicate checking and saves to the database
+    }
     private int GetOrCreateCompositionsFolder()
     {
         try

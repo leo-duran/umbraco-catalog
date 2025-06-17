@@ -48,9 +48,27 @@ public class TabBuilder
         return this;
     }
 
-    public TabBuilder AddDocumentTypeProperty(string name, string alias, Action<PropertyBuilder> configureProperty)
+    /// <summary>
+    /// Adds a document type property to the tab.
+    /// </summary>
+    /// <param name="name">The name of the property.</param>
+    /// <param name="alias">The alias of the property.</param>
+    /// <param name="description">The description of the property.</param>
+    /// <param name="mandatory">Whether the property is mandatory.</param>
+    /// <param name="sortOrder">The sort order of the property.</param>
+    /// <param name="validationRegex">The validation regular expression.</param>
+    /// <param name="labelOnTop">Whether the label should be on top.</param>
+    /// <returns>The current builder instance for method chaining.</returns>
+    public TabBuilder AddDocumentTypeProperty(
+        string name,
+        string alias,
+        string? description = null,
+        bool mandatory = false,
+        int sortOrder = 0,
+        string? validationRegex = null,
+        bool labelOnTop = false)
     {
-        return AddProperty(name, alias, "Umbraco.DocumentType", configureProperty);
+        return AddProperty(name, alias, "Umbraco.DocumentType", description, mandatory, sortOrder, validationRegex, labelOnTop);
     }
 
     /// <summary>
@@ -59,12 +77,39 @@ public class TabBuilder
     /// <param name="name">The name of the property.</param>
     /// <param name="alias">The alias of the property.</param>
     /// <param name="editorAlias">The alias of the property editor.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
+    /// <param name="description">The description of the property.</param>
+    /// <param name="mandatory">Whether the property is mandatory.</param>
+    /// <param name="sortOrder">The sort order of the property.</param>
+    /// <param name="validationRegex">The validation regular expression.</param>
+    /// <param name="labelOnTop">Whether the label should be on top.</param>
     /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddProperty(string name, string alias, string editorAlias, Action<PropertyBuilder> configureProperty)
+    public TabBuilder AddProperty(
+        string name,
+        string alias,
+        string editorAlias,
+        string? description = null,
+        bool mandatory = false,
+        int sortOrder = 0,
+        string? validationRegex = null,
+        bool labelOnTop = false)
     {
         var propertyBuilder = new PropertyBuilder(name, alias, editorAlias, _shortStringHelper);
-        configureProperty(propertyBuilder);
+
+        if (!string.IsNullOrEmpty(description))
+            propertyBuilder.WithDescription(description);
+
+        if (mandatory)
+            propertyBuilder.IsMandatory(mandatory);
+
+        if (sortOrder != 0)
+            propertyBuilder.WithSortOrder(sortOrder);
+
+        if (!string.IsNullOrEmpty(validationRegex))
+            propertyBuilder.WithValidationRegex(validationRegex);
+
+        if (labelOnTop)
+            propertyBuilder.WithLabelOnTop(labelOnTop);
+
         _tab.PropertyTypes?.Add(propertyBuilder.Build());
         return this;
     }
@@ -74,11 +119,22 @@ public class TabBuilder
     /// </summary>
     /// <param name="name">The name of the property.</param>
     /// <param name="alias">The alias of the property.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
+    /// <param name="description">The description of the property.</param>
+    /// <param name="mandatory">Whether the property is mandatory.</param>
+    /// <param name="sortOrder">The sort order of the property.</param>
+    /// <param name="validationRegex">The validation regular expression.</param>
+    /// <param name="labelOnTop">Whether the label should be on top.</param>
     /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddTextBoxProperty(string name, string alias, Action<PropertyBuilder>? configureProperty = null)
+    public TabBuilder AddTextBoxProperty(
+        string name,
+        string alias,
+        string? description = null,
+        bool mandatory = false,
+        int sortOrder = 0,
+        string? validationRegex = null,
+        bool labelOnTop = false)
     {
-        return AddProperty(name, alias, "Umbraco.TextBox", configureProperty ?? (p => { }));
+        return AddProperty(name, alias, "Umbraco.TextBox", description, mandatory, sortOrder, validationRegex, labelOnTop);
     }
 
     /// <summary>
@@ -86,11 +142,22 @@ public class TabBuilder
     /// </summary>
     /// <param name="name">The name of the property.</param>
     /// <param name="alias">The alias of the property.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
+    /// <param name="description">The description of the property.</param>
+    /// <param name="mandatory">Whether the property is mandatory.</param>
+    /// <param name="sortOrder">The sort order of the property.</param>
+    /// <param name="validationRegex">The validation regular expression.</param>
+    /// <param name="labelOnTop">Whether the label should be on top.</param>
     /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddTextAreaProperty(string name, string alias, Action<PropertyBuilder>? configureProperty = null)
+    public TabBuilder AddTextAreaProperty(
+        string name,
+        string alias,
+        string? description = null,
+        bool mandatory = false,
+        int sortOrder = 0,
+        string? validationRegex = null,
+        bool labelOnTop = false)
     {
-        return AddProperty(name, alias, "Umbraco.TextArea", configureProperty ?? (p => { }));
+        return AddProperty(name, alias, "Umbraco.TextArea", description, mandatory, sortOrder, validationRegex, labelOnTop);
     }
 
     /// <summary>
@@ -98,11 +165,22 @@ public class TabBuilder
     /// </summary>
     /// <param name="name">The name of the property.</param>
     /// <param name="alias">The alias of the property.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
+    /// <param name="description">The description of the property.</param>
+    /// <param name="mandatory">Whether the property is mandatory.</param>
+    /// <param name="sortOrder">The sort order of the property.</param>
+    /// <param name="validationRegex">The validation regular expression.</param>
+    /// <param name="labelOnTop">Whether the label should be on top.</param>
     /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddRichTextProperty(string name, string alias, Action<PropertyBuilder>? configureProperty = null)
+    public TabBuilder AddRichTextProperty(
+        string name,
+        string alias,
+        string? description = null,
+        bool mandatory = false,
+        int sortOrder = 0,
+        string? validationRegex = null,
+        bool labelOnTop = false)
     {
-        return AddProperty(name, alias, "Umbraco.TinyMCE", configureProperty ?? (p => { }));
+        return AddProperty(name, alias, "Umbraco.TinyMCE", description, mandatory, sortOrder, validationRegex, labelOnTop);
     }
 
     /// <summary>
@@ -110,11 +188,22 @@ public class TabBuilder
     /// </summary>
     /// <param name="name">The name of the property.</param>
     /// <param name="alias">The alias of the property.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
+    /// <param name="description">The description of the property.</param>
+    /// <param name="mandatory">Whether the property is mandatory.</param>
+    /// <param name="sortOrder">The sort order of the property.</param>
+    /// <param name="validationRegex">The validation regular expression.</param>
+    /// <param name="labelOnTop">Whether the label should be on top.</param>
     /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddMediaPickerProperty(string name, string alias, Action<PropertyBuilder>? configureProperty = null)
+    public TabBuilder AddMediaPickerProperty(
+        string name,
+        string alias,
+        string? description = null,
+        bool mandatory = false,
+        int sortOrder = 0,
+        string? validationRegex = null,
+        bool labelOnTop = false)
     {
-        return AddProperty(name, alias, "Umbraco.MediaPicker3", configureProperty ?? (p => { }));
+        return AddProperty(name, alias, "Umbraco.MediaPicker3", description, mandatory, sortOrder, validationRegex, labelOnTop);
     }
 
     /// <summary>
@@ -122,11 +211,22 @@ public class TabBuilder
     /// </summary>
     /// <param name="name">The name of the property.</param>
     /// <param name="alias">The alias of the property.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
+    /// <param name="description">The description of the property.</param>
+    /// <param name="mandatory">Whether the property is mandatory.</param>
+    /// <param name="sortOrder">The sort order of the property.</param>
+    /// <param name="validationRegex">The validation regular expression.</param>
+    /// <param name="labelOnTop">Whether the label should be on top.</param>
     /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddContentPickerProperty(string name, string alias, Action<PropertyBuilder>? configureProperty = null)
+    public TabBuilder AddContentPickerProperty(
+        string name,
+        string alias,
+        string? description = null,
+        bool mandatory = false,
+        int sortOrder = 0,
+        string? validationRegex = null,
+        bool labelOnTop = false)
     {
-        return AddProperty(name, alias, "Umbraco.ContentPicker", configureProperty ?? (p => { }));
+        return AddProperty(name, alias, "Umbraco.ContentPicker", description, mandatory, sortOrder, validationRegex, labelOnTop);
     }
 
     /// <summary>
@@ -134,11 +234,22 @@ public class TabBuilder
     /// </summary>
     /// <param name="name">The name of the property.</param>
     /// <param name="alias">The alias of the property.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
+    /// <param name="description">The description of the property.</param>
+    /// <param name="mandatory">Whether the property is mandatory.</param>
+    /// <param name="sortOrder">The sort order of the property.</param>
+    /// <param name="validationRegex">The validation regular expression.</param>
+    /// <param name="labelOnTop">Whether the label should be on top.</param>
     /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddNumericProperty(string name, string alias, Action<PropertyBuilder>? configureProperty = null)
+    public TabBuilder AddNumericProperty(
+        string name,
+        string alias,
+        string? description = null,
+        bool mandatory = false,
+        int sortOrder = 0,
+        string? validationRegex = null,
+        bool labelOnTop = false)
     {
-        return AddProperty(name, alias, "Umbraco.Integer", configureProperty ?? (p => { }));
+        return AddProperty(name, alias, "Umbraco.Integer", description, mandatory, sortOrder, validationRegex, labelOnTop);
     }
 
     /// <summary>
@@ -146,11 +257,22 @@ public class TabBuilder
     /// </summary>
     /// <param name="name">The name of the property.</param>
     /// <param name="alias">The alias of the property.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
+    /// <param name="description">The description of the property.</param>
+    /// <param name="mandatory">Whether the property is mandatory.</param>
+    /// <param name="sortOrder">The sort order of the property.</param>
+    /// <param name="validationRegex">The validation regular expression.</param>
+    /// <param name="labelOnTop">Whether the label should be on top.</param>
     /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddCheckboxProperty(string name, string alias, Action<PropertyBuilder>? configureProperty = null)
+    public TabBuilder AddCheckboxProperty(
+        string name,
+        string alias,
+        string? description = null,
+        bool mandatory = false,
+        int sortOrder = 0,
+        string? validationRegex = null,
+        bool labelOnTop = false)
     {
-        return AddProperty(name, alias, "Umbraco.TrueFalse", configureProperty ?? (p => { }));
+        return AddProperty(name, alias, "Umbraco.TrueFalse", description, mandatory, sortOrder, validationRegex, labelOnTop);
     }
 
     /// <summary>
@@ -158,11 +280,22 @@ public class TabBuilder
     /// </summary>
     /// <param name="name">The name of the property.</param>
     /// <param name="alias">The alias of the property.</param>
-    /// <param name="configureProperty">Action to configure the property.</param>
+    /// <param name="description">The description of the property.</param>
+    /// <param name="mandatory">Whether the property is mandatory.</param>
+    /// <param name="sortOrder">The sort order of the property.</param>
+    /// <param name="validationRegex">The validation regular expression.</param>
+    /// <param name="labelOnTop">Whether the label should be on top.</param>
     /// <returns>The current builder instance for method chaining.</returns>
-    public TabBuilder AddDatePickerProperty(string name, string alias, Action<PropertyBuilder>? configureProperty = null)
+    public TabBuilder AddDatePickerProperty(
+        string name,
+        string alias,
+        string? description = null,
+        bool mandatory = false,
+        int sortOrder = 0,
+        string? validationRegex = null,
+        bool labelOnTop = false)
     {
-        return AddProperty(name, alias, "Umbraco.DateTime", configureProperty ?? (p => { }));
+        return AddProperty(name, alias, "Umbraco.DateTime", description, mandatory, sortOrder, validationRegex, labelOnTop);
     }
 
     /// <summary>

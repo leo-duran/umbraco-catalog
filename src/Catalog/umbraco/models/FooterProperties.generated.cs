@@ -18,24 +18,24 @@ using Umbraco.Extensions;
 
 namespace Catalog.Models
 {
-	// Mixin Content Type with alias "contentSettings"
-	/// <summary>Content Settings</summary>
-	public partial interface IContentSettings : IPublishedElement
+	// Mixin Content Type with alias "footerProperties"
+	/// <summary>Footer Properties</summary>
+	public partial interface IFooterProperties : IPublishedElement
 	{
-		/// <summary>Main Content</summary>
+		/// <summary>Footer Content</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		string MainContent { get; }
+		string FooterContent { get; }
 	}
 
-	/// <summary>Content Settings</summary>
-	[PublishedModel("contentSettings")]
-	public partial class ContentSettings : PublishedElementModel, IContentSettings
+	/// <summary>Footer Properties</summary>
+	[PublishedModel("footerProperties")]
+	public partial class FooterProperties : PublishedElementModel, IFooterProperties
 	{
 		// helpers
 #pragma warning disable 0109 // new is redundant
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
-		public new const string ModelTypeAlias = "contentSettings";
+		public new const string ModelTypeAlias = "footerProperties";
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
 		public new const PublishedItemType ModelItemType = PublishedItemType.Content;
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
@@ -44,14 +44,14 @@ namespace Catalog.Models
 			=> PublishedModelUtility.GetModelContentType(contentTypeCache, ModelItemType, ModelTypeAlias);
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
 		[return: global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		public static IPublishedPropertyType GetModelPropertyType<TValue>(IPublishedContentTypeCache contentTypeCache, Expression<Func<ContentSettings, TValue>> selector)
+		public static IPublishedPropertyType GetModelPropertyType<TValue>(IPublishedContentTypeCache contentTypeCache, Expression<Func<FooterProperties, TValue>> selector)
 			=> PublishedModelUtility.GetModelPropertyType(GetModelContentType(contentTypeCache), selector);
 #pragma warning restore 0109
 
 		private IPublishedValueFallback _publishedValueFallback;
 
 		// ctor
-		public ContentSettings(IPublishedElement content, IPublishedValueFallback publishedValueFallback)
+		public FooterProperties(IPublishedElement content, IPublishedValueFallback publishedValueFallback)
 			: base(content, publishedValueFallback)
 		{
 			_publishedValueFallback = publishedValueFallback;
@@ -60,16 +60,16 @@ namespace Catalog.Models
 		// properties
 
 		///<summary>
-		/// Main Content: Main content
+		/// Footer Content: Footer Content
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		[ImplementPropertyType("mainContent")]
-		public virtual string MainContent => GetMainContent(this, _publishedValueFallback);
+		[ImplementPropertyType("footerContent")]
+		public virtual string FooterContent => GetFooterContent(this, _publishedValueFallback);
 
-		/// <summary>Static getter for Main Content</summary>
+		/// <summary>Static getter for Footer Content</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
 		[return: global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		public static string GetMainContent(IContentSettings that, IPublishedValueFallback publishedValueFallback) => that.Value<string>(publishedValueFallback, "mainContent");
+		public static string GetFooterContent(IFooterProperties that, IPublishedValueFallback publishedValueFallback) => that.Value<string>(publishedValueFallback, "footerContent");
 	}
 }

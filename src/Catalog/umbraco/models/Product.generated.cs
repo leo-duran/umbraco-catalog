@@ -20,7 +20,7 @@ namespace Catalog.Models
 {
 	/// <summary>Product</summary>
 	[PublishedModel("product")]
-	public partial class Product : PublishedContentModel, IContentSettings
+	public partial class Product : PublishedContentModel, IContentSettings, IFooterProperties
 	{
 		// helpers
 #pragma warning disable 0109 // new is redundant
@@ -73,19 +73,19 @@ namespace Catalog.Models
 		public virtual global::Umbraco.Cms.Core.Models.MediaWithCrops ProductImage => this.Value<global::Umbraco.Cms.Core.Models.MediaWithCrops>(_publishedValueFallback, "productImage");
 
 		///<summary>
-		/// Content: Main content
+		/// Main Content: Main content
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		[ImplementPropertyType("content")]
-		public virtual string Content => global::Catalog.Models.ContentSettings.GetContent(this, _publishedValueFallback);
+		[ImplementPropertyType("mainContent")]
+		public virtual string MainContent => global::Catalog.Models.ContentSettings.GetMainContent(this, _publishedValueFallback);
 
 		///<summary>
-		/// Title: Page title
+		/// Footer Content: Footer Content
 		///</summary>
 		[global::System.CodeDom.Compiler.GeneratedCodeAttribute("Umbraco.ModelsBuilder.Embedded", "15.4.3+9b2fd12")]
 		[global::System.Diagnostics.CodeAnalysis.MaybeNull]
-		[ImplementPropertyType("title")]
-		public virtual string Title => global::Catalog.Models.ContentSettings.GetTitle(this, _publishedValueFallback);
+		[ImplementPropertyType("footerContent")]
+		public virtual string FooterContent => global::Catalog.Models.FooterProperties.GetFooterContent(this, _publishedValueFallback);
 	}
 }

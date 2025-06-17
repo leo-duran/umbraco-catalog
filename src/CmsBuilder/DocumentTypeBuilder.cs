@@ -10,6 +10,7 @@ namespace CmsBuilder;
 public class DocumentTypeBuilder
 {
     private readonly ContentType _contentType;
+    private readonly IContentTypeService _contentTypeService;
     private readonly IShortStringHelper _shortStringHelper;
     private Template? _template;
     private string? _templateContent;
@@ -19,9 +20,10 @@ public class DocumentTypeBuilder
     /// Initializes a new instance of the <see cref="DocumentTypeBuilder"/> class.
     /// </summary>
     /// <param name="shortStringHelper">The short string helper used for creating aliases.</param>
-    public DocumentTypeBuilder(IShortStringHelper shortStringHelper)
+    public DocumentTypeBuilder(IShortStringHelper shortStringHelper, IContentTypeService contentTypeService)
     {
         _shortStringHelper = shortStringHelper;
+        _contentTypeService = contentTypeService;
         _contentType = new ContentType(shortStringHelper, -1);
     }
 
@@ -32,9 +34,11 @@ public class DocumentTypeBuilder
     /// <param name="fileService">The file service for template operations.</param>
     public DocumentTypeBuilder(
         IShortStringHelper shortStringHelper,
+        IContentTypeService contentTypeService,
         IFileService fileService)
     {
         _shortStringHelper = shortStringHelper;
+        _contentTypeService = contentTypeService;
         _contentType = new ContentType(shortStringHelper, -1);
         _fileService = fileService;
     }
@@ -102,6 +106,17 @@ public class DocumentTypeBuilder
     public DocumentTypeBuilder IsElement(bool isElement = true)
     {
         _contentType.IsElement = isElement;
+        return this;
+    }
+
+    /// <summary>
+    /// Sets the parent folder/container for the document type.
+    /// </summary>
+    /// <param name="parentId">The ID of the parent folder/container.</param>
+    /// <returns>The current builder instance for method chaining.</returns>
+    public DocumentTypeBuilder WithParentFolder(int parentId)
+    {
+        _contentType.ParentId = parentId;
         return this;
     }
 
@@ -205,10 +220,44 @@ public class DocumentTypeBuilder
     }
 
     /// <summary>
-    /// Builds and returns the ContentType instance.
+    /// Builds, saves, and returns the ContentType instance.
+    /// After calling this method, the document type will be persisted to the database.
     /// </summary>
-    /// <returns>The built ContentType.</returns>
+    /// <returns>The built and saved ContentType.</returns>
     public ContentType Build()
+    {
+        // Check if content type already exists
+        var existingContentType = _contentTypeService.Get(_contentType.Alias);
+        if (existingContentType != null)
+        {
+            return existingContentType as ContentType ?? throw new InvalidOperationException($"Existing content type '{_contentType.Alias}' could not be cast to ContentType");
+        }
+
+        // Set IsElement to false by default to ensure the document type appears in the content tree
+        if (!_contentType.IsElement)
+        {
+            _contentType.IsElement = false;
+        }
+
+        // Associate the template if one was created
+        if (_template != null)
+        {
+            _contentType.AllowedTemplates = [_template];
+            _contentType.SetDefaultTemplate(_template);
+        }
+
+        // Save the content type to the database
+        _contentTypeService.Save(_contentType);
+
+        return _contentType;
+    }
+
+    /// <summary>
+    /// Builds the ContentType instance without saving it to the database.
+    /// Use this method when you want to inspect or modify the content type before saving.
+    /// </summary>
+    /// <returns>The built ContentType (not saved to database).</returns>
+    public ContentType BuildWithoutSaving()
     {
         // Set IsElement to false by default to ensure the document type appears in the content tree
         if (!_contentType.IsElement)

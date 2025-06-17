@@ -24,7 +24,7 @@ dotnet add package Umbraco.DocTypeBuilder
 
 ```csharp
 // Create a document type
-var contentTypeBuilder = new DocumentTypeBuilder(_shortStringHelper)
+var contentTypeBuilder = new DocumentTypeBuilder(_shortStringHelper, _contentTypeService)
     .WithAlias("product")
     .WithName("Product")
     .WithDescription("A product document type")
@@ -33,19 +33,17 @@ var contentTypeBuilder = new DocumentTypeBuilder(_shortStringHelper)
     .AddTab("Content", tab => tab
         .WithAlias("content")
         .WithSortOrder(1)
-        .AddTextBoxProperty("Title", "title", property => property
-            .WithDescription("The product title")
-            .IsMandatory()
-        )
+        .AddTextBoxProperty("Title", "title", 
+            description: "The product title",
+            mandatory: true)
         .AddRichTextProperty("Description", "description")
         .AddMediaPickerProperty("Product Image", "productImage")
     )
     .AddTab("Pricing", tab => tab
         .WithAlias("pricing")
         .WithSortOrder(2)
-        .AddNumericProperty("Price", "price", property => property
-            .IsMandatory()
-        )
+        .AddNumericProperty("Price", "price", 
+            mandatory: true)
         .AddCheckboxProperty("On Sale", "onSale")
     );
 
@@ -89,13 +87,12 @@ The TabBuilder includes helper methods for common property types:
 You can configure properties with additional options:
 
 ```csharp
-.AddTextBoxProperty("Title", "title", property => property
-    .WithDescription("The product title")
-    .IsMandatory()
-    .WithSortOrder(1)
-    .WithValidationRegex("^[a-zA-Z0-9 ]*$")
-    .WithLabelOnTop()
-)
+.AddTextBoxProperty("Title", "title", 
+    description: "The product title",
+    mandatory: true,
+    sortOrder: 1,
+    validationRegex: "^[a-zA-Z0-9 ]*$",
+    labelOnTop: true)
 ```
 
 ## License

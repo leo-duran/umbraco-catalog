@@ -40,8 +40,7 @@ public class ProductDocTypeHandler : INotificationAsyncHandler<UmbracoApplicatio
             {
                 try
                 {
-                    // Check if content type already exists
-                    _logger.LogInformation("Checking if content type already exists: {ContentTypeAlias}", contentTypeAlias);
+                    // Check if content type already exists and handle composition updates
                     var existingContentType = _contentTypeService.Get(contentTypeAlias);
                     if (existingContentType != null)
                     {
@@ -49,19 +48,18 @@ public class ProductDocTypeHandler : INotificationAsyncHandler<UmbracoApplicatio
 
                         // Check if it already has the composition
                         var hasComposition = existingContentType.ContentTypeComposition.Any(c => c.Alias == contentSettingsAlias);
-                        if (hasComposition)
-                        {
-                            _logger.LogInformation("Content type already has ContentSettings composition");
-                            scope.Complete();
-                            return;
-                        }
-                        else
+                        if (!hasComposition)
                         {
                             _logger.LogInformation("Adding ContentSettings composition to existing Product document type");
                             AddCompositionToExistingContentType(existingContentType);
-                            scope.Complete();
-                            return;
                         }
+                        else
+                        {
+                            _logger.LogInformation("Content type already has ContentSettings composition");
+                        }
+
+                        scope.Complete();
+                        return;
                     }
 
                     // Get the ContentSettings composition
@@ -73,31 +71,33 @@ public class ProductDocTypeHandler : INotificationAsyncHandler<UmbracoApplicatio
                         throw new InvalidOperationException($"ContentSettings composition '{contentSettingsAlias}' not found. Ensure ContentSettingsCompositionHandler runs first.");
                     }
 
+                    var footerPropertiesComposition = _contentTypeService.Get("footerProperties");
+                    if (footerPropertiesComposition == null)
+                    {
+                        _logger.LogError("FooterProperties composition not found. Make sure ContentSettingsCompositionHandler runs first.");
+                        throw new InvalidOperationException($"ContentSettings composition '{contentSettingsAlias}' not found. Ensure ContentSettingsCompositionHandler runs first.");
+                    }
+
+
+                    // Create and build the document type - Build() now handles duplicate checking and persistence
                     _logger.LogInformation("Creating document type: {ContentTypeAlias}", contentTypeAlias);
-                    var contentTypeBuilder = new DocumentTypeBuilder(_shortStringHelper)
+                    var contentType = new DocumentTypeBuilder(_shortStringHelper, _contentTypeService)
                         .WithAlias(contentTypeAlias)
                         .WithName("Product")
                         .WithDescription("A product document type")
                         .WithIcon("icon-shopping-basket")
                         .AddComposition(contentSettingsComposition)  // Add the composition first
+                        .AddComposition(footerPropertiesComposition)  // Add the composition first
                         .AddTab("Product Info", tab => tab
                             .WithAlias("productInfo")
                             .WithSortOrder(2)  // Set higher sort order so it appears after the Content tab from composition
                             .AddTextAreaProperty("Description", "description")
-                            .AddNumericProperty("Price", "price", property => property
-                                .IsMandatory())
-                            .AddMediaPickerProperty("Product Image", "productImage"));
+                            .AddNumericProperty("Price", "price",
+                                mandatory: true)
+                            .AddMediaPickerProperty("Product Image", "productImage"))
+                        .Build();  // This now handles duplicate checking and saves to the database
 
-                    _logger.LogInformation("Building content type");
-                    var contentType = contentTypeBuilder.Build();
-
-                    // Enable ModelsBuilder for this content type
-                    _logger.LogInformation("Enabling ModelsBuilder for content type");
-                    contentType.IsElement = false;
-
-                    _logger.LogInformation("Saving content type: {ContentTypeAlias}", contentTypeAlias);
-                    _contentTypeService.Save(contentType);
-                    _logger.LogInformation("Content type saved successfully: {ContentTypeAlias}", contentTypeAlias);
+                    _logger.LogInformation("Product document type created and saved successfully: {ContentTypeAlias}", contentTypeAlias);
 
                     _logger.LogInformation("Completing scope");
                     scope.Complete();
@@ -118,6 +118,7 @@ public class ProductDocTypeHandler : INotificationAsyncHandler<UmbracoApplicatio
 
         return;
     }
+
 
     private void AddCompositionToExistingContentType(IContentType existingContentType)
     {
