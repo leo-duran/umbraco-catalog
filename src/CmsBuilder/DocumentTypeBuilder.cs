@@ -187,29 +187,6 @@ public class DocumentTypeBuilder
     }
 
     /// <summary>
-    /// Associates an existing template with the document type by alias.
-    /// </summary>
-    /// <param name="templateAlias">The alias of the existing template.</param>
-    /// <returns>The current builder instance for method chaining.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when file service is not available or template is not found.</exception>
-    public DocumentTypeBuilder WithExistingTemplate(string templateAlias)
-    {
-        if (_fileService == null)
-        {
-            throw new InvalidOperationException("File service is not available. Use the constructor that accepts IFileService.");
-        }
-
-        // Get the existing template
-        _template = _fileService.GetTemplate(templateAlias) as Template;
-        if (_template == null)
-        {
-            throw new InvalidOperationException($"Template with alias '{templateAlias}' not found.");
-        }
-
-        return this;
-    }
-
-    /// <summary>
     /// Builds, saves, and returns the ContentType instance.
     /// After calling this method, the document type will be persisted to the database.
     /// </summary>
@@ -297,7 +274,7 @@ public class DocumentTypeBuilder
         }
 
         // Get existing containers
-        var containers = _contentTypeService.GetContainers(_contentType.Alias, 1);
+        var containers = _contentTypeService.GetContainers(name, 1);
         var existingContainer = containers.FirstOrDefault(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
         if (existingContainer == null)

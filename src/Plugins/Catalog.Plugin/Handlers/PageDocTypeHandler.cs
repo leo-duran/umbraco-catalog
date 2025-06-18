@@ -1,12 +1,10 @@
 using Microsoft.Extensions.Logging;
 using Umbraco.Cms.Core.Events;
-using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Scoping;
 using Umbraco.Cms.Core.Notifications;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
 using CmsBuilder;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Catalog.Plugin.Handlers;
 
@@ -53,6 +51,8 @@ public class PageDocTypeHandler : INotificationAsyncHandler<UmbracoApplicationSt
                 throw new InvalidOperationException($"ContentProperties composition '{contentPropertiesAlias}' not found. Ensure PropertiesCompositionHandler runs first.");
             }
 
+            var templateContent = GetTemplateContent();
+
             var homePageType = new DocumentTypeBuilder(_shortStringHelper, _contentTypeService, _fileService)
                 .AddFolder("Pages")
                 .WithAlias(contentTypeAlias)
@@ -60,7 +60,7 @@ public class PageDocTypeHandler : INotificationAsyncHandler<UmbracoApplicationSt
                 .WithDescription("The home page of the website")
                 .WithIcon("icon-home")
                 .AllowAtRoot(true)
-                .WithTemplate("homePage", "Home Page", "<div>Home Page</div>")
+                .WithTemplate("homePage", "Home Page", templateContent)
                 .AddComposition(contentPropertiesComposition)
                 .Build();
 
@@ -72,5 +72,28 @@ public class PageDocTypeHandler : INotificationAsyncHandler<UmbracoApplicationSt
         }
 
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Reads the template content from the Views/homePage.cshtml file.
+    /// </summary>
+    /// <returns>The template content as a string.</returns>
+    private string GetTemplateContent()
+    {
+        // Get the path to the template file relative to the handler's location
+        var templatePath = Path.Combine(Path.GetDirectoryName(typeof(PageDocTypeHandler).Assembly.Location) ?? "",
+                "Handlers", "Views", "homePage.txt");
+
+
+        if (System.IO.File.Exists(templatePath))
+        {
+            _logger.LogInformation("Reading template content from: {TemplatePath}", templatePath);
+            return System.IO.File.ReadAllText(templatePath);
+        }
+        else
+        {
+            _logger.LogError("Template file not found at: {TemplatePath}", templatePath);
+            throw new FileNotFoundException($"Template file not found at: {templatePath}");
+        }
     }
 }

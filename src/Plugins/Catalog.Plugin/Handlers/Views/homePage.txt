@@ -1,0 +1,17 @@
+﻿@using Umbraco.Cms.Web.Common.PublishedModels;
+@using Umbraco.Extensions;
+@inherits Umbraco.Cms.Web.Common.Views.UmbracoViewPage
+@{
+	Layout = null;
+}
+
+<html>
+
+<body>
+	<h1>Home Page</h1>
+	<p>@Model.Value("mainContent")</p>
+	<h2>Did it get updated?</h2>
+
+</body>
+
+</html>

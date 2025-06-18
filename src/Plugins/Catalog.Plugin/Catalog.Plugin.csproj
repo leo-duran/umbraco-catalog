@@ -38,6 +38,12 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Handlers\Views\homePage.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <!-- Restore and build Client files -->
   <Target Name="RestoreClient" Inputs="Client\package.json;Client\package-lock.json" Outputs="Client\node_modules\.package-lock.json">
     <Message Importance="high" Text="Restoring Client NPM packages..." />
