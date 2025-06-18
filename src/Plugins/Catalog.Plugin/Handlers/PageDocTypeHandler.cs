@@ -8,7 +8,7 @@ using Umbraco.Cms.Core.Strings;
 using CmsBuilder;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Catalog.Plugin.Composers;
+namespace Catalog.Plugin.Handlers;
 
 public class PageDocTypeHandler : INotificationAsyncHandler<UmbracoApplicationStartingNotification>
 {

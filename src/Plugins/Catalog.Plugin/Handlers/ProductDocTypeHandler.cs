@@ -7,7 +7,7 @@ using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
 using CmsBuilder;
 
-namespace Catalog.Plugin.Composers;
+namespace Catalog.Plugin.Handlers;
 
 public class ProductDocTypeHandler : INotificationAsyncHandler<UmbracoApplicationStartingNotification>
 {

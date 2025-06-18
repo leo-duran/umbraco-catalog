@@ -7,7 +7,7 @@ using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
 using CmsBuilder;
 
-namespace Catalog.Plugin.Composers;
+namespace Catalog.Plugin.Handlers;
 
 /// <summary>
 /// Handler that creates a ContentProperties composition document type.
