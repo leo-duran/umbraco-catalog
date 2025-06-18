@@ -1,3 +1,4 @@
+using System.Linq;
 using Umbraco.Cms.Core.Models;
 using Umbraco.Cms.Core.Services;
 using Umbraco.Cms.Core.Strings;
@@ -15,17 +16,6 @@ public class DocumentTypeBuilder
     private Template? _template;
     private string? _templateContent;
     private readonly IFileService? _fileService;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="DocumentTypeBuilder"/> class.
-    /// </summary>
-    /// <param name="shortStringHelper">The short string helper used for creating aliases.</param>
-    public DocumentTypeBuilder(IShortStringHelper shortStringHelper, IContentTypeService contentTypeService)
-    {
-        _shortStringHelper = shortStringHelper;
-        _contentTypeService = contentTypeService;
-        _contentType = new ContentType(shortStringHelper, -1);
-    }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DocumentTypeBuilder"/> class with template support.
@@ -167,7 +157,7 @@ public class DocumentTypeBuilder
             if (_template == null)
             {
                 // Create a new template
-                _template = new Template(_shortStringHelper, templateAlias, templateName)
+                _template = new Template(_shortStringHelper, templateName, templateAlias)
                 {
                     Content = templateContent
                 };
@@ -291,5 +281,45 @@ public class DocumentTypeBuilder
     public string? GetTemplateContent()
     {
         return _templateContent;
+    }
+
+    /// <summary>
+    /// Sets the parent container (folder) for the document type.
+    /// Creates the container if it doesn't exist.
+    /// </summary>
+    /// <param name="name">The name of the container/folder.</param>
+    /// <returns>The current builder instance for method chaining.</returns>
+    public DocumentTypeBuilder AddFolder(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return this;
+        }
+
+        // Get existing containers
+        var containers = _contentTypeService.GetContainers(_contentType.Alias, 1);
+        var existingContainer = containers.FirstOrDefault(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+        if (existingContainer == null)
+        {
+            // Create a new container using the proper Umbraco container system
+            var createAttempt = _contentTypeService.CreateContainer(-1, Guid.NewGuid(), name);
+
+            if (createAttempt.Success)
+            {
+                _contentType.ParentId = createAttempt.Result.Entity.Id;
+            }
+            else
+            {
+                throw new InvalidOperationException($"Failed to create container '{name}': {createAttempt.Exception?.Message}");
+            }
+        }
+        else
+        {
+            // Use existing container
+            _contentType.ParentId = existingContainer.Id;
+        }
+
+        return this;
     }
 }

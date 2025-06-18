@@ -21,17 +21,19 @@ public class PropertiesCompositionHandler : INotificationAsyncHandler<UmbracoApp
     private readonly IContentTypeService _contentTypeService;
     private readonly ICoreScopeProvider _scopeProvider;
     private readonly ILogger<PropertiesCompositionHandler> _logger;
-
+    private readonly IFileService _fileService;
     public PropertiesCompositionHandler(
         IShortStringHelper shortStringHelper,
         IContentTypeService contentTypeService,
         ICoreScopeProvider scopeProvider,
-        ILogger<PropertiesCompositionHandler> logger)
+        ILogger<PropertiesCompositionHandler> logger,
+        IFileService fileService)
     {
         _shortStringHelper = shortStringHelper;
         _contentTypeService = contentTypeService;
         _scopeProvider = scopeProvider;
         _logger = logger;
+        _fileService = fileService;
     }
 
     public async Task HandleAsync(UmbracoApplicationStartingNotification notification, CancellationToken cancellationToken)
@@ -65,7 +67,7 @@ public class PropertiesCompositionHandler : INotificationAsyncHandler<UmbracoApp
         _logger.LogInformation("Creating ContentProperties composition");
 
         // Create and build the document type - Build() now handles duplicate checking and persistence
-        var contentType = new DocumentTypeBuilder(_shortStringHelper, _contentTypeService)
+        var contentType = new DocumentTypeBuilder(_shortStringHelper, _contentTypeService, _fileService)
             .WithAlias(contentTypeAlias)
             .WithName("Content Properties")
             .WithDescription("A composition that contains content properties")
@@ -85,7 +87,7 @@ public class PropertiesCompositionHandler : INotificationAsyncHandler<UmbracoApp
     private void CreateFooterPropertiesComposition(int folderId)
     {
         // Create and build the document type - Build() now handles duplicate checking and persistence
-        var contentType = new DocumentTypeBuilder(_shortStringHelper, _contentTypeService)
+        var contentType = new DocumentTypeBuilder(_shortStringHelper, _contentTypeService, _fileService)
             .WithAlias("footerProperties")
             .WithName("Footer Properties")
             .WithDescription("A composition that contains footer properties")

@@ -18,17 +18,19 @@ public class ProductDocTypeHandler : INotificationAsyncHandler<UmbracoApplicatio
     private readonly IContentTypeService _contentTypeService;
     private readonly ICoreScopeProvider _scopeProvider;
     private readonly ILogger<ProductDocTypeHandler> _logger;
-
+    private readonly IFileService _fileService;
     public ProductDocTypeHandler(
         IShortStringHelper shortStringHelper,
         IContentTypeService contentTypeService,
         ICoreScopeProvider scopeProvider,
-        ILogger<ProductDocTypeHandler> logger)
+        ILogger<ProductDocTypeHandler> logger,
+        IFileService fileService)
     {
         _shortStringHelper = shortStringHelper;
         _contentTypeService = contentTypeService;
         _scopeProvider = scopeProvider;
         _logger = logger;
+        _fileService = fileService;
     }
 
     public async Task HandleAsync(UmbracoApplicationStartingNotification notification, CancellationToken cancellationToken)
@@ -82,7 +84,7 @@ public class ProductDocTypeHandler : INotificationAsyncHandler<UmbracoApplicatio
 
                     // Create and build the document type - Build() now handles duplicate checking and persistence
                     _logger.LogInformation("Creating document type: {ContentTypeAlias}", contentTypeAlias);
-                    var contentType = new DocumentTypeBuilder(_shortStringHelper, _contentTypeService)
+                    var contentType = new DocumentTypeBuilder(_shortStringHelper, _contentTypeService, _fileService)
                         .WithAlias(contentTypeAlias)
                         .WithName("Product")
                         .WithDescription("A product document type")
